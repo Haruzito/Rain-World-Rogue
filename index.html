@@ -6,10 +6,9 @@
 
 <style>
 body {
-  background: black;
-  color: #AEEBFF;
+  background: #3b2f1c;
+  color: #9bbc0f;
   font-family: monospace;
-  margin: 0;
 }
 
 #layout {
@@ -18,13 +17,13 @@ body {
 }
 
 #left, #right {
-  width: 20%;
+  width: 25%;
   padding: 10px;
-  border-right: 1px solid #AEEBFF;
+  box-sizing: border-box;
 }
 
 #right {
-  border-left: 1px solid #AEEBFF;
+  border-left: 2px solid #9bbc0f;
   border-right: none;
 }
 
@@ -39,16 +38,16 @@ body {
   padding: 10px;
   overflow-y: auto;
   white-space: pre-line;
+  background: #2e2416;
+  border-top: 2px solid #9bbc0f;
 }
 
 input {
   padding: 10px;
-  background: black;
-  color: #AEEBFF;
-  border: none;
+  background: #2e2416;
+  color: #9bbc0f;
+  border-top: 2px solid #9bbc0f;
   outline: none;
-  position: sticky;
-  bottom: 0;
 }
 
 .box { border: 1px solid #AEEBFF; padding: 5px; margin: 5px 0; }
@@ -129,20 +128,32 @@ function updateHUD() {
 
   let imgPlayer = "img/" + player.classeAtual + ".png";
 
+  let hpPercent = (player.hp / player.maxHp) * 100;
+
   document.getElementById("player").innerHTML =
     "<img src='" + imgPlayer + "' width='100'><br>" +
 
-    "Slugcat: " + player.nome + "<br>" +
-    "Classe: " + player.classeAtual + "<br>" +
-    "HP: " + player.hp + "/" + player.maxHp + "<br>" +
-    "ATK: " + player.atk + "<br>" +
-    "DEF: " + player.def + "<br>" +
-    "Sala: " + room + "/5" + "<br>" +
-    "Nível: " + player.nivel + "<br>" +
-    "XP: " + player.xp + "<br>" +
-    "Pérolas: " + player.perolas + "<br>" +
-    "Evoluções: " + (player.evolucoes.join(", ") || "Nenhuma") + "<br>" +
-    "Inventário: " + (player.inventario.join(", ") || "Vazio");
+    "SLUGCAT<br>" +
+    "Classe: " + player.classeAtual + "<br><br>" +
+
+    "HP<br>" +
+"<div style='position:relative; border:2px solid #9bbc0f; width:100%; height:14px;'>" +
+
+  "<div style='background:#4CAF50; width:" + hpPercent + "%; height:100%; transition:0.3s;'></div>" +
+
+  "<div style='position:absolute; width:100%; top:0; left:0; text-align:center; font-size:10px; color:black; font-weight:bold;'>" +
+    player.hp + " / " + player.maxHp +
+  "</div>" +
+
+"</div>" +
+
+    "<br>ATK: " + player.atk +
+    "<br>DEF: " + player.def +
+    "<br><br>Sala: " + room + "/5" +
+    "<br>Nível: " + player.nivel +
+    "<br>Pérolas: " + player.perolas +
+    "<br><br>INV:<br>" +
+    (player.inventario.join(", ") || "Vazio");
 }
 
 function startGame() {
@@ -599,12 +610,25 @@ function updateEnemyHUD() {
   if (enemy.name === "Abutre") img = "img/abutre.png";
   if (enemy.name === "Centipede") img = "img/centipede.png";
 
-  info.innerHTML =
-    "<div>👾 CRIATURA</div>" +
-    "<img src='" + img + "' width='120'><br>" +
-    "Nome: " + enemy.name + "<br>" +
-    "HP: " + enemy.hp + "<br>" +
-    "ATK: " + enemy.atk;
+  let maxHp = enemy.maxHp || enemy.hp;
+  let hpPercent = (enemy.hp / maxHp) * 100;
+
+info.innerHTML =
+  "<div>👾 INIMIGO</div><br>" +
+  "<img src='" + img + "' width='120'><br><br>" +
+
+  "HP<br>" +
+  "<div style='position:relative; border:2px solid red; width:100%; height:14px;'>" +
+
+    "<div style='background:red; width:" + hpPercent + "%; height:100%; transition:0.3s;'></div>" +
+
+    "<div style='position:absolute; width:100%; top:0; left:0; text-align:center; font-size:10px; color:white; font-weight:bold; text-shadow: 0 0 3px black;'>" +
+      enemy.hp + " / " + maxHp +
+    "</div>" +
+
+  "</div>" +
+
+  "<br>ATK: " + enemy.atk;
 }
 
 </script>
