@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Slugcat Roguelike</title>
+
+<style>
+body {
+  background: black;
+  color: #AEEBFF;
+  font-family: monospace;
+  margin: 0;
+}
+
+#layout {
+  display: flex;
+  height: 100vh;
+}
+
+#left, #right {
+  width: 20%;
+  padding: 10px;
+  border-right: 1px solid #AEEBFF;
+}
+
+#right {
+  border-left: 1px solid #AEEBFF;
+  border-right: none;
+}
+
+#center {
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+}
+
+#terminal {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  white-space: pre-line;
+}
+
+input {
+  padding: 10px;
+  background: black;
+  color: #AEEBFF;
+  border: none;
+  outline: none;
+  position: sticky;
+  bottom: 0;
+}
+
+.box { border: 1px solid #AEEBFF; padding: 5px; margin: 5px 0; }
+.evento { color: yellow; }
+.combate { color: red; }
+</style>
+</head>
+
+<body>
+
+<div id="layout">
+  <div id="left">
+    <div id="player"></div>
+    <div id="enemy"></div>
+  </div>
+
+  <div id="center">
+    <div id="terminal"></div>
+    <input id="input" placeholder="Digite..." autofocus>
+  </div>
+
+  <div id="right">
+    <div id="info"></div>
+  </div>
+</div>
+
+<script>
+
+let term = document.getElementById("terminal");
+let input = document.getElementById("input");
+
+let modo = "menu";
+let fase = 1;
+let room = 1;
+let enemy = null;
+let results = [];
+
+let defesaTemp = 0;
+
+let player = {
+  nome: "",
+  classeBase: "",
+  classeAtual: "",
+  evolucoes: [],
+  hp: 30,
+  maxHp: 30,
+  atk: 0,
+  def: 0,
+
+  perolas: 0,
+  nivel: 1,
+  xp: 0,
+  inventario: []
+};
+
+// 🎮 CLASSES SLUGCAT
+const classes = {
+  monk:   { hp: 35, atk: 2, def: 3 },
+  survivor:{ hp: 30, atk: 3, def: 2 },
+  hunter: { hp: 22, atk: 5, def: 1 }
+};
+const evolucoes = {
+  monk: ["gourmond", "santo"],
+  survivor: ["watcher", "inv"],
+  hunter: ["artificer", "spearmaster"]
+};
+
+function print(t, c="") {
+  let d = document.createElement("div");
+  d.className = c;
+  d.innerText = t;
+  term.appendChild(d);
+  term.scrollTop = term.scrollHeight;
+  updateHUD();
+}
+
+function updateHUD() {
+
+  let imgPlayer = "img/" + player.classeAtual + ".png";
+
+  document.getElementById("player").innerHTML =
+    "<img src='" + imgPlayer + "' width='100'><br>" +
+
+    "Slugcat: " + player.nome + "<br>" +
+    "Classe: " + player.classeAtual + "<br>" +
+    "HP: " + player.hp + "/" + player.maxHp + "<br>" +
+    "ATK: " + player.atk + "<br>" +
+    "DEF: " + player.def + "<br>" +
+    "Sala: " + room + "/5" + "<br>" +
+    "Nível: " + player.nivel + "<br>" +
+    "XP: " + player.xp + "<br>" +
+    "Pérolas: " + player.perolas + "<br>" +
+    "Evoluções: " + (player.evolucoes.join(", ") || "Nenhuma") + "<br>" +
+    "Inventário: " + (player.inventario.join(", ") || "Vazio");
+}
+
+function startGame() {
+  print("Escolha classe: monk / survivor / hunter", "evento");
+  modo = "class";
+}
+
+// 🎲 INIMIGOS
+function enemyGen() {
+  let list = [
+    {name:"Scavenger", hp:25, atk:7},
+    {name:"Lagarto rosa", hp:40, atk:8, def:1},
+    {name:"Lagarto verde", hp:60, atk:14, def:2},
+    {name:"Lagarto azul", hp:20, atk:6},
+    {name:"Abutre", hp:120, atk:10},
+    {name:"Centipede", hp:14, atk:5}
+  ];
+  return list[Math.floor(Math.random()*list.length)];
+}
+
+// 🏃 SALAS
+function nextRoom() {
+  room++;
+
+  if (room > 5) {
+    shelter();
+    return;
+  }
+
+  print("Sala " + room, "evento");
+
+  if (Math.random() < 0.7) combat();
+  else event();
+}
+
+// 🏠 ABRIGO (5ª sala)
+function shelter() {
+  print("🏕 ABRIGO SEGURO", "box evento");
+  player.hp = player.maxHp;
+  print("HP restaurado!");
+
+  room = 0;
+  fase++;
+
+  print("Digite 'continuar'");
+  modo = "shelter";
+}
+
+// ⚔️ COMBATE
+function combat() {
+  modo = "combat";
+  enemy = enemyGen();
+
+  print("⚔️ Inimigo: " + enemy.name, "combate");
+  print("Comandos: atk / def / agir / usar [item] / fugir", "combate");
+
+  updateEnemyHUD();
+}
+
+function enemyTurn() {
+
+  let defesaTotal = player.def + defesaTemp;
+
+  let dmg = Math.max(0, enemy.atk - defesaTotal);
+  player.hp -= dmg;
+
+  defesaTemp = 0; // reseta depois de usar
+
+  print("Inimigo causa " + dmg, "combate");
+
+  updateEnemyHUD();
+
+  if (player.hp <= 0) {
+    gameOver();
+  }
+}
+function evoluirClasse(nova) {
+
+  if (!player.evolucoes.includes(nova)) {
+    print("❌ Classe não desbloqueada!", "evento");
+    return;
+  }
+
+  player.classeAtual = nova;
+
+  // bônus simples (ajustável depois)
+  player.maxHp += 5;
+  player.hp = player.maxHp;
+  player.atk += 2;
+  player.def += 1;
+
+  print("✨ Evoluiu para: " + nova, "evento");
+}
+function ganharXP(valor) {
+  player.xp += valor;
+
+  if (player.xp >= player.nivel * 10) {
+    player.xp -= player.nivel * 10;
+    player.nivel++;
+
+    print("✨ LEVEL UP! Nível " + player.nivel, "evento");
+
+    escolherHabilidade();
+  }
+}
+
+function escolherHabilidade() {
+  let habilidades = [
+    () => { player.atk += 1; print("ATK aumentado!"); },
+    () => { player.maxHp += 5; player.hp += 5; print("HP aumentado!"); }
+  ];
+
+  let escolha = habilidades[Math.floor(Math.random() * habilidades.length)];
+  escolha();
+}
+
+// 🎯 EVENTOS
+function event() {
+  let roll = Math.random();
+
+  if (roll < 0.4) {
+    print("Evento estranho na sala...", "evento");
+  } 
+  else if (roll < 0.7) {
+    player.hp = Math.min(player.hp + 5, player.maxHp);
+    print("Você encontrou comida (+5 HP)");
+  } 
+  else if (roll < 0.85) {
+    eventoItem();
+  }
+  else if (roll < 0.95) {
+    eventoLoja();
+  }
+  else {
+    eventoEvolucao();
+  }
+}
+function eventoEvolucao() {
+
+  if (!player.evolucoes.length) {
+    print("Nada acontece...", "evento");
+    return;
+  }
+
+  print("🧬 Você sente seu corpo mudar...", "evento");
+  print("Escolha uma evolução:", "evento");
+
+  player.evolucoes.forEach((e, i) => {
+    print((i+1) + " - " + e, "evento");
+  });
+
+  modo = "evolucao";
+}
+function eventoItem() {
+
+  let itens = ["pedra", "lança", "fruta"];
+  let item = itens[Math.floor(Math.random() * itens.length)];
+
+  player.inventario.push(item);
+
+  print("🎁 Você encontrou: " + item, "evento");
+}
+function usarItem(nome) {
+
+  if (!player.inventario.includes(nome)) {
+    print("Você não tem esse item!", "evento");
+    return;
+  }
+
+  if (nome === "fruta") {
+    player.hp = Math.min(player.hp + 10, player.maxHp);
+    print("🍎 Você comeu uma fruta (+10 HP)");
+  }
+
+  if (nome === "pedra") {
+  print("🪨 Você arremessa uma pedra!");
+
+  if (enemy) {
+    enemy.hp -= 3;
+
+    if (enemy.hp <= 0) {
+      print("Inimigo derrotado!");
+      ganharXP(5);
+      enemy = null;
+      updateEnemyHUD();
+      modo = "game";
+    }
+  }
+}
+
+  if (nome === "lança") {
+    print("🔱 Ataque com lança!");
+    if (enemy) {
+  enemy.hp -= 6;
+
+  if (enemy.hp <= 0) {
+    print("Inimigo derrotado!");
+    ganharXP(5);
+    enemy = null;
+    updateEnemyHUD();
+    modo = "game";
+  }
+}
+  }
+
+  // remove item
+  player.inventario = player.inventario.filter(i => i !== nome);
+}
+function eventoLoja() {
+  print("🏪 Um mercador aparece...", "evento");
+  print("1 - Fruta (2 pérolas)", "evento");
+  print("2 - Pedra (3 pérolas)", "evento");
+  print("3 - Lança (5 pérolas)", "evento");
+
+  modo = "loja";
+}
+
+function gameOver() {
+  print("💀 GAME OVER", "combate");
+
+  print("=== ESTATÍSTICAS ===", "evento");
+  print("Sala: " + room);
+  print("Nível: " + player.nivel);
+  print("Pérolas: " + player.perolas);
+  print("Itens: " + (player.inventario.join(", ") || "Nenhum"));
+
+  print("Digite 'restart' para recomeçar", "evento");
+
+  modo = "dead";
+}
+
+// 🧠 INPUT
+input.addEventListener("keydown", e => {
+  if (e.key !== "Enter") return;
+
+  let cmd = input.value.toLowerCase();
+  print("> " + cmd);
+  input.value = "";
+  // 🏪 LOJA (TEM QUE FICAR AQUI DENTRO!)
+if (modo === "loja") {
+
+  if (cmd === "1" && player.perolas >= 2) {
+    player.perolas -= 2;
+    player.inventario.push("fruta");
+    print("Comprou fruta!");
+  }
+
+  else if (cmd === "2" && player.perolas >= 3) {
+    player.perolas -= 3;
+    player.inventario.push("pedra");
+    print("Comprou pedra!");
+  }
+
+  else if (cmd === "3" && player.perolas >= 5) {
+    player.perolas -= 5;
+    player.inventario.push("lança");
+    print("Comprou lança!");
+  }
+
+  else {
+    print("Compra inválida ou sem pérolas");
+  }
+
+  modo = "game";
+  return;
+}
+  if (modo === "dead") {
+  if (cmd === "restart") {
+    location.reload();
+  } else {
+    print("Digite 'restart' para recomeçar", "evento");
+  }
+  return;
+}
+
+  // MENU
+  if (modo === "menu") {
+    if (cmd === "start") startGame();
+    return;
+  }
+  // 🔥 EVOLUÇÃO (fora do menu!)
+if (modo === "evolucao") {
+  let escolha = parseInt(cmd) - 1;
+
+  if (player.evolucoes[escolha]) {
+    evoluirClasse(player.evolucoes[escolha]);
+    modo = "game";
+  } else {
+    print("Escolha inválida", "evento");
+  }
+
+  return;
+}
+
+  // ESCOLHA CLASSE
+  if (modo === "class") {
+    if (classes[cmd]) {
+      let c = classes[cmd];
+      player.classeBase = cmd;
+      player.classeAtual = cmd;
+
+      player.hp = c.hp;
+      player.maxHp = c.hp;
+      player.atk = c.atk;
+      player.def = c.def;
+
+// desbloqueia evoluções
+      player.evolucoes = evolucoes[cmd] || [];
+
+      print("Classe escolhida: " + cmd);
+      modo = "game";
+      print("Digite 'explorar'");
+    }
+    return;
+  }
+
+  // JOGO
+  if (modo === "game") {
+
+  if (cmd === "explorar") {
+    nextRoom();
+    return;
+  }
+
+  if (cmd === "inv") {
+    print("Inventário: " + (player.inventario.join(", ") || "Vazio"));
+    return;
+  }
+
+  if (cmd.startsWith("evoluir ")) {
+    let nova = cmd.split(" ")[1];
+    evoluirClasse(nova);
+    return;
+  }
+  if (cmd.startsWith("usar ")) {
+  let item = cmd.split(" ")[1];
+  usarItem(item);
+  return;
+  }
+}
+
+  if (modo === "combat") {
+
+  // ATAQUE
+  if (cmd === "atk") {
+
+    let crit = Math.random() < 0.25;
+
+    let base = player.atk + Math.floor(Math.random()*6);
+    let dmg = crit ? base * 2 : base;
+
+    dmg = Math.max(0, dmg - (enemy.def || 0));
+
+    enemy.hp -= dmg;
+
+    print("Você causa " + dmg + (crit ? " 💥 CRÍTICO!" : ""));
+    print("HP do inimigo: " + enemy.hp);
+
+    if (enemy.hp <= 0) {
+      print("Inimigo derrotado!");
+
+      // 💎 Pérolas
+      let ganho = Math.floor(Math.random() * 3) + 1;
+      player.perolas += ganho;
+      print("Você encontrou " + ganho + " pérolas!", "evento");
+
+      // ⭐ XP
+      ganharXP(5);
+
+      enemy = null;
+      updateEnemyHUD();
+      modo = "game";
+      return;
+    }
+
+    enemyTurn();
+    return;
+  }
+
+  // USAR ITEM (🔴 FORA do atk)
+  if (cmd.startsWith("usar ")) {
+  let item = cmd.split(" ")[1];
+  usarItem(item);
+
+  if (enemy) enemyTurn(); // inimigo responde
+
+  return;
+}
+
+  // AGIR (esquiva)
+  if (cmd === "agir") {
+
+    let efeito = Math.random();
+
+    if (efeito < 0.5) {
+      print("Você se move rapidamente! (evitou dano)");
+      return;
+    } else {
+      print("Você falhou em agir...");
+      enemyTurn();
+      return;
+    }
+  }
+
+  // DEFESA
+  if (cmd === "def") {
+    defesaTemp = 3;
+    print("🛡️ Você se defende!");
+    enemyTurn();
+    return;
+  }
+
+  // FUGA
+  if (cmd === "fugir") {
+    if (Math.random() > 0.5) {
+      print("Você fugiu!");
+      modo = "game";
+    } else {
+      print("Falha na fuga!");
+      enemyTurn();
+    }
+    return;
+  }
+}
+
+  // ABRIGO
+  if (modo === "shelter") {
+    if (cmd === "continuar") {
+      modo = "game";
+      print("Você volta à exploração...");
+    }
+  }
+
+});
+
+print("SLUGCAT ROGUELIKE");
+print("Digite 'start' para começar");
+updateHUD();
+function updateEnemyHUD() {
+  const info = document.getElementById("info");
+
+  if (!enemy) {
+    info.innerHTML = "Nenhuma criatura detectada...";
+    return;
+  }
+
+  // define imagem baseada no nome
+  let img = "";
+
+  if (enemy.name === "Scavenger") img = "img/scavenger.png";
+  if (enemy.name === "Lagarto rosa") img = "img/lagarto-rosa.png";
+  if (enemy.name === "Lagarto verde") img = "img/lagarto-verde.png";
+  if (enemy.name === "Lagarto azul") img = "img/lagarto-azul.png";
+  if (enemy.name === "Abutre") img = "img/abutre.png";
+  if (enemy.name === "Centipede") img = "img/centipede.png";
+
+  info.innerHTML =
+    "<div>👾 CRIATURA</div>" +
+    "<img src='" + img + "' width='120'><br>" +
+    "Nome: " + enemy.name + "<br>" +
+    "HP: " + enemy.hp + "<br>" +
+    "ATK: " + enemy.atk;
+}
+
+</script>
+</body>
+</html>
