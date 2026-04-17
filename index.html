@@ -54,6 +54,30 @@ input {
   outline: none;
 }
 
+.alerta {
+  background: #8b0000;
+  color: #ffff00;
+  padding: 6px;
+  border: 2px solid #ffff00;
+  text-align: center;
+  animation: piscar 0.5s alternate infinite;
+}
+
+@keyframes piscar {
+  from { opacity: 1; }
+  to { opacity: 0.6; }
+}
+
+.gameover {
+  background: #2b0000;
+  color: #ffcc00;
+  padding: 10px;
+  border: 2px solid #ffcc00;
+  text-align: center;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
 .box {
   border: 2px solid #9bbc0f;
   padding: 10px;
@@ -90,6 +114,8 @@ let modo = "menu";
 let fase = 1;
 let room = 1;
 let enemy = null;
+let fasesCompletadas = 0;
+updateEnemyHUD();
 let results = [];
 
 let defesaTemp = 0;
@@ -155,16 +181,26 @@ function updateHUD() {
 "</div>" +
 
     "<br>ATK: " + player.atk +
-    "<br>DEF: " + player.def +
-    "<br><br>Sala: " + room + "/5" +
-    "<br>Nível: " + player.nivel +
-    "<br>Pérolas: " + player.perolas +
-    "<br><br>INV:<br>" +
-    (player.inventario.join(", ") || "Vazio");
+"<br>DEF: " + player.def +
+"<br><br>Sala: " + room + "/5" +
+"<br>Fases concluídas: " + fasesCompletadas +
+"<br><br>Nível: " + player.nivel +
+"<br>Pérolas: " + player.perolas +
+"<br><br>INV:<br>" +
+(player.inventario.join(", ") || "Vazio");
 }
 
 function startGame() {
-  print("Escolha classe: monk / survivor / hunter", "evento");
+  printHTML(
+  "<div class='gameover'>Escolha sua classe:</div>" +
+
+  criarCardClasse("Monk", "monk", "img/monk.png") +
+  criarCardClasse("Survivor", "survivor", "img/survivor.png") +
+  criarCardClasse("Hunter", "hunter", "img/hunter.png") +
+
+  "<br>Digite: monk / survivor / hunter",
+  ""
+);
   modo = "class";
 }
 
@@ -205,6 +241,8 @@ function shelter() {
   room = 0;
   fase++;
 
+  fasesCompletadas++; // 👈 NOVO
+
   print("Digite 'continuar'");
   modo = "shelter";
 }
@@ -214,6 +252,7 @@ function combat() {
   modo = "combat";
   enemy = enemyGen();
 
+  print("⚠️ UM INIMIGO SURGIU!", "alerta");
   print("⚔️ Inimigo: " + enemy.name, "combate");
   print("Comandos: atk / def / agir / usar [item] / fugir", "combate");
 
@@ -308,9 +347,19 @@ function eventoEvolucao() {
   print("🧬 Você sente seu corpo mudar...", "evento");
   print("Escolha uma evolução:", "evento");
 
-  player.evolucoes.forEach((e, i) => {
-    print((i+1) + " - " + e, "evento");
-  });
+  let html = "<div class='box'>🧬 Evoluções disponíveis:</div>";
+
+player.evolucoes.forEach((e) => {
+  html += criarCardClasse(
+    e.toUpperCase(),
+    e,
+    "img/" + e + ".png"
+  );
+});
+
+html += "<br>Digite o nome da evolução.";
+
+printHTML(html, "");
 
   modo = "evolucao";
 }
@@ -374,20 +423,75 @@ function eventoLoja() {
   print("1 - Fruta (2 pérolas)", "evento");
   print("2 - Pedra (3 pérolas)", "evento");
   print("3 - Lança (5 pérolas)", "evento");
+  print("Digite 'sair' para ir embora", "evento");
 
   modo = "loja";
 }
 
+function printHTML(html, c="") {
+  let d = document.createElement("div");
+  d.className = c;
+  d.innerHTML = html; // 👈 aqui é o segredo
+  term.appendChild(d);
+  term.scrollTop = term.scrollHeight;
+  updateHUD();
+}
+
+function criarCardClasse(nome, classe, img) {
+
+  let c = classes[classe];
+
+  return `
+  <div style="
+    display:flex;
+    border:2px solid #9bbc0f;
+    background:#081c08;
+    padding:10px;
+    margin:10px 0;
+    gap:10px;
+    align-items:center;
+  ">
+
+    <img src="${img}" width="80" style="border:1px solid #9bbc0f;">
+
+    <div style="display:flex; flex-direction:column; gap:4px;">
+
+      <div style="font-size:16px; font-weight:bold; color:#AEEBFF;">
+        ${nome}
+      </div>
+
+      <div>HP: ${c.hp}</div>
+      <div>ATK: ${c.atk}</div>
+      <div>DEF: ${c.def}</div>
+
+    </div>
+
+  </div>
+  `;
+}
+
 function gameOver() {
-  print("💀 GAME OVER", "combate");
 
-  print("=== ESTATÍSTICAS ===", "evento");
-  print("Sala: " + room);
-  print("Nível: " + player.nivel);
-  print("Pérolas: " + player.perolas);
-  print("Itens: " + (player.inventario.join(", ") || "Nenhum"));
+  printHTML(
+    "<div class='gameover'>" +
+      "💀 GAME OVER<br><br>" +
 
-  print("Digite 'restart' para recomeçar", "evento");
+      "<div class='box'>" +
+        "📊 ESTATÍSTICAS FINAIS<br><br>" +
+
+        "Sala: " + room + "<br>" +
+        "Fases concluídas: " + fasesCompletadas + "<br>" +
+        "Nível: " + player.nivel + "<br>" +
+        "Pérolas: " + player.perolas + "<br><br>" +
+
+        "Itens:<br>" +
+        (player.inventario.join(", ") || "Nenhum") +
+      "</div>" +
+
+      "<br>🔁 Digite 'restart' para reiniciar a run" +
+    "</div>",
+    ""
+  );
 
   modo = "dead";
 }
@@ -401,6 +505,12 @@ input.addEventListener("keydown", e => {
   input.value = "";
   // 🏪 LOJA (TEM QUE FICAR AQUI DENTRO!)
 if (modo === "loja") {
+  
+  if (cmd === "sair") {
+  print("Você saiu da loja.", "evento");
+  modo = "game";
+  return;
+}
 
   if (cmd === "1" && player.perolas >= 2) {
     player.perolas -= 2;
@@ -575,9 +685,11 @@ if (modo === "evolucao") {
 
   // FUGA
   if (cmd === "fugir") {
-    if (Math.random() > 0.5) {
-      print("Você fugiu!");
-      modo = "game";
+  if (Math.random() > 0.5) {
+    print("Você fugiu!");
+    enemy = null;
+    updateEnemyHUD();
+    modo = "game";
     } else {
       print("Falha na fuga!");
       enemyTurn();
