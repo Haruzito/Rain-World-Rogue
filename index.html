@@ -6,9 +6,11 @@
 
 <style>
 body {
-  background: #3b2f1c;
+  background: #081c08;
   color: #9bbc0f;
   font-family: monospace;
+  margin: 0;
+  height: 100vh;
 }
 
 #layout {
@@ -20,6 +22,8 @@ body {
   width: 25%;
   padding: 10px;
   box-sizing: border-box;
+  background: #102810;
+  border-right: 2px solid #9bbc0f;
 }
 
 #right {
@@ -28,9 +32,10 @@ body {
 }
 
 #center {
-  width: 60%;
+  width: 50%;
   display: flex;
   flex-direction: column;
+  height: 100%;
 }
 
 #terminal {
@@ -38,21 +43,23 @@ body {
   padding: 10px;
   overflow-y: auto;
   white-space: pre-line;
-  background: #2e2416;
-  border-top: 2px solid #9bbc0f;
+  background: #102810;
 }
 
 input {
   padding: 10px;
-  background: #2e2416;
+  background: #081c08;
   color: #9bbc0f;
   border-top: 2px solid #9bbc0f;
   outline: none;
 }
 
-.box { border: 1px solid #AEEBFF; padding: 5px; margin: 5px 0; }
-.evento { color: yellow; }
-.combate { color: red; }
+.box {
+  border: 2px solid #9bbc0f;
+  padding: 10px;
+  margin-bottom: 10px;
+  background: #081c08;
+}
 </style>
 </head>
 
