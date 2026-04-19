@@ -369,7 +369,7 @@ input {
   width: 8px;
   height: 60px;
 
-  border: 2px solid rgba(255,255,255,0.4);
+  border: 2px solid rgb(255, 255, 255);
   background: red;
 
   display: flex;
@@ -459,8 +459,15 @@ input {
 .hud-stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  margin-top: 10px;
+  gap: 2px 8px;
+
+  width: 100%;
+  margin-top: 8px;
+
+  color: #cfd6df;
   font-size: 12px;
+
+  flex-shrink: 0;
 }
 
 .hud-info {
@@ -472,7 +479,9 @@ input {
 .hud-main {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
 }
 
 .hud-right {
@@ -486,7 +495,10 @@ input {
 .hud-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+
+  flex: 1;
+  min-width: 140px;
 }
 
 /* lado direito (karma + pips) */
@@ -869,11 +881,14 @@ let karmaImg = "img/Karma_" + player.karma + ".png";
 
   <div class="hud-main">
 
+  <!-- HP -->
   <div class="hp-wrapper">
     <div class="hp-vertical">
       <div class="hp-fill" style="height:${hpPercent}%"></div>
     </div>
+  </div>
 
+  <!-- INFO CENTRAL -->
   <div class="hud-text">
 
       <img src="${imgPlayer}" class="hud-img">
@@ -1717,6 +1732,9 @@ function evoluirClasse(nova) {
   </div>
 
 `);
+modo = "game";
+  mostrarAcoes();
+  updateHUD();
 }
 function ganharXP(valor) {
   player.xp += valor;
@@ -2189,6 +2207,11 @@ function comprar(item, preco) {
 
 function sairLoja() {
   print("Você saiu da loja.");
+  
+  enemy = enemy;
+  modo = "game";
+  
+  setAcoes("");
   mostrarAcoes();
 }
 
