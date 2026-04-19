@@ -308,14 +308,44 @@ let player = {
   classeBase: "",
   classeAtual: "",
   evolucoes: [],
+
+  // ❤️ VIDA
   hp: 30,
   maxHp: 30,
+
+  // ⚔️ COMBATE BASE
   atk: 0,
   def: 0,
 
+  // 🍗 PIPS (energia)
+  comida: 7,
+  maxComida: 7,
+
+  // 🧬 ATRIBUTOS
+  str: 0, // força
+  ref: 0, // reflexo
+  vel: 0, // velocidade
+  int: 0, // inteligência
+
+  // 🎲 DADOS BASE
+  strDice: 10,
+  refDice: 10,
+  velDice: 10,
+  intDice: 10,
+
+  // 🎮 TURNOS
+  movimento: 1,
+  acao: 1,
+  dodge: 0,
+
+  // 📊 STATUS
+  status: [],
+
+  // 💰 PROGRESSÃO
   perolas: 0,
   nivel: 1,
   xp: 0,
+
   inventario: []
 };
 
@@ -324,6 +354,16 @@ const classes = {
   monk:   { hp: 35, atk: 2, def: 3 },
   survivor:{ hp: 30, atk: 3, def: 2 },
   hunter: { hp: 22, atk: 5, def: 1 }
+};
+const statsEvolucoes = {
+  gourmond: { hp: 50, atk: 3, def: 6 },
+  santo: { hp: 40, atk: 2, def: 7 },
+
+  watcher: { hp: 38, atk: 5, def: 4 },
+  inv: { hp: 36, atk: 6, def: 3 },
+
+  artificer: { hp: 30, atk: 10, def: 1 },
+  spearmaster: { hp: 28, atk: 9, def: 2 }
 };
 const evolucoes = {
   monk: ["gourmond", "santo"],
@@ -354,11 +394,23 @@ function updateHUD() {
 
   let hpPercent = (player.hp / player.maxHp) * 100;
 
+  // barra de comida (pips)
+let pips = "";
+for (let i = 0; i < player.maxComida; i++) {
+  if (i < player.comida) {
+    pips += "●";
+  } else {
+    pips += "○";
+  }
+}
+
   document.getElementById("player").innerHTML =
     "<img src='" + imgPlayer + "' width='100'><br>" +
 
     "SLUGCAT<br>" +
     "Classe: " + player.classeAtual + "<br><br>" +
+
+    "Comida: " + pips + "<br><br>" +
 
     "HP<br>" +
 "<div style='position:relative; border:2px solid #9bbc0f; width:100%; height:14px;'>" +
@@ -505,6 +557,8 @@ function shelter() {
 
   player.hp = player.maxHp;
 
+  player.comida = player.maxComida;
+
   room = 0;
   fase++;
   fasesCompletadas++;
@@ -569,6 +623,8 @@ function evoluirClasse(nova) {
 
   player.classeAtual = nova;
 
+  player.evolucoes = player.evolucoes.filter(e => e !== nova);
+
   // 🔥 bônus únicos por evolução
   if (nova === "gourmond") {
     player.maxHp += 15;
@@ -615,6 +671,9 @@ function evoluirClasse(nova) {
     <div class="titulo-card">${nova.toUpperCase()}</div>
     <div style="color:#9aa3ad;">Nova forma desbloqueada</div>
   </div>
+
+  modo = "game";
+
 `);
 }
 function ganharXP(valor) {
@@ -701,6 +760,11 @@ function eventoItem() {
 }
 function usarItem(nome) {
 
+  if (player.comida <= 0) {
+  print("Você está sem energia!", "evento");
+  return;
+}
+
   if (!player.inventario.includes(nome)) {
     print("Você não tem esse item!", "evento");
     return;
@@ -744,6 +808,8 @@ function usarItem(nome) {
 
   // remove item
   player.inventario = player.inventario.filter(i => i !== nome);
+  
+  player.comida--;
 
   abrirInventario();
 }
@@ -822,7 +888,7 @@ function setAcoes(html) {
 
 function criarCardClasse(nome, classe, img, tipo="classe") {
 
-  let c = classes[classe] || { hp: "?", atk: "?", def: "?" };
+  let c = classes[classe] || statsEvolucoes[classe] || { hp: "?", atk: "?", def: "?" };
 
   let acao = tipo === "evolucao"
     ? `evoluirClasse('${classe}')`
