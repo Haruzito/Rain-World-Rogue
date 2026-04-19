@@ -73,12 +73,24 @@ body::before {
 
 body {
   margin: 0;
+  overflow: hidden;
+}
 
-  background: url("img/bg.jpg") no-repeat center center fixed;
+#bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 120%;
+  height: 120%;
+
+  background-image: url("img/bg_outskirts.jpg");
   background-size: cover;
+  background-position: center;
 
-  color: #cfd6df;
-  font-family: 'Segoe UI', sans-serif;
+  transform: translate(0px, 0px);
+  transition: transform 0.1s linear;
+
+  z-index: -2;
 }
 
 .karma-icon {
@@ -500,7 +512,55 @@ input {
 .enemy-fill {
   background: red;
 }
-/*FECHAR CARD DO HUD INIMIGO*/
+/*LAYOUT BACKGROUND ANIMATED*/
+#bg-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  width: 200%;
+  height: 100%;
+
+  background-repeat: repeat-x;
+  background-size: cover;
+
+  z-index: -2;
+
+  animation: scrollBg 60s linear infinite;
+}
+
+/* escurecimento estilo Rain World */
+#bg-layer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+}
+
+@keyframes scrollBg {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+#bg-far {
+  position: fixed;
+  width: 200%;
+  height: 100%;
+  background-repeat: repeat-x;
+  animation: scrollBg 120s linear infinite;
+  z-index: -3;
+  filter: brightness(0.5);
+}
+
+#bg-mid {
+  position: fixed;
+  width: 200%;
+  height: 100%;
+  background-repeat: repeat-x;
+  animation: scrollBg 60s linear infinite;
+  z-index: -2;
+  filter: brightness(0.7);
+}
 
 .gameover {
   background: rgba(120, 0, 0, 0.15); /* vermelho bem transparente */
@@ -520,6 +580,10 @@ input {
 </head>
 
 <body>
+
+  <div id="bg"></div>
+
+  <div id="bg-layer"></div>
 
 <div id="logo">
   <div class="logo-card">
@@ -869,6 +933,22 @@ function atualizarBannerRegiao() {
   `;
 }
 
+// FUNDOS RAIN WORLD ROGUE
+function aplicarBackground() {
+  const bg = regiao.bg;
+
+  document.body.style.backgroundImage = `
+    linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.6)),
+    url('${bg}')
+  `;
+
+  document.body.style.backgroundSize = "cover";
+  document.body.style.backgroundPosition = "center";
+  document.body.style.backgroundRepeat = "no-repeat";
+}
+
+aplicarBackground();
+
 function startGame() {
   printHTML(
     "<div class='box'>Escolha sua classe:</div>" +
@@ -880,7 +960,11 @@ function startGame() {
     "</div>"
   );
 
+  aplicarBackground();
+
   modo = "class";
+
+  atualizarBackground();
 }
 function selecionarClasse(cmd) {
   term.innerHTML = "";
@@ -1169,8 +1253,7 @@ function confirmarRegiao() {
   indiceRegiao++;
   regiao = regioes[indiceRegiao];
 
-  document.body.style.backgroundImage = `url('${regiao.bg}')`;
-
+  aplicarBackground();
   updateRegiaoHUD();
 
   print("🌍 Você entrou em " + regiao.nome, "evento");
@@ -1807,46 +1890,6 @@ function enfrentarLeviata() {
   }
 }
 
-function eventoRegiao() {
-
-  let regioes = [
-    { nome: "Outskirts", karma: 1, bg: "img/bg_outskirts.jpg" },
-    { nome: "Industrial Complex", karma: 2, bg: "img/bg_industrial.jpg" },
-    { nome: "Drainage System", karma: 3, bg: "img/bg_drainage.jpg" },
-    { nome: "Shaded Citadel", karma: 4, bg: "img/bg_shaded.jpg" }
-  ];
-
-  let nova = regioes[Math.floor(Math.random() * regioes.length)];
-
-  printHTML(`
-    <div class="card evento-card">
-
-      <div class="titulo-card">🌍 Nova Região Encontrada</div>
-
-      <div><b>${nova.nome}</b></div>
-
-      <div style="color:#9aa3ad;">
-        Karma necessário: ${nova.karma}
-      </div>
-
-    </div>
-  `);
-
-  setAcoes(`
-
-    <button onclick='entrarRegiao(${JSON.stringify(nova)})'>
-      Entrar
-    </button>
-
-    <button onclick='continuarRegiao()'>
-      Continuar aqui
-    </button>
-
-  `);
-
-  modo = "regiao";
-}
-
 function morteInstantanea() {
   player.hp = 0;
   gameOver();
@@ -1893,36 +1936,15 @@ function eventoComida() {
   modo = "evento";
 }
 
-function entrarRegiao(nova) {
-
-  if (player.karma < nova.karma) {
-    print("❌ Karma insuficiente!", "evento");
-    mostrarAcoes();
-    modo = "game";
-    return;
-  }
-
-  aplicarRegiao(nova);
-}
-
 function continuarRegiao() {
   print("Você permanece na região atual.", "evento");
   mostrarAcoes();
   modo = "game";
 }
 
-function aplicarRegiao(nova) {
-
-  regiao = nova;
-
-  atualizarBannerRegiao();
-
-  document.body.style.backgroundImage = `url('${nova.bg}')`;
-
-  print("🌍 Agora você está em: " + nova.nome, "evento");
-
-  mostrarAcoes();
-  modo = "game";
+function atualizarBackground() {
+  document.getElementById("bg").style.backgroundImage =
+    `url(${regiao.bg})`;
 }
 
 function tentarPegarComida(nome) {
@@ -2490,6 +2512,16 @@ function acaoFugir() {
 function reiniciarJogo() {
   location.reload();
 }
+
+let bg = document.getElementById("bg");
+
+document.addEventListener("mousemove", (e) => {
+
+  let x = (e.clientX / window.innerWidth - 0.5) * 30;
+  let y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+  bg.style.transform = `translate(${x}px, ${y}px)`;
+});
 
 </script>
 </body>
