@@ -5,6 +5,59 @@
 <title>Slugcat Roguelike</title>
 
 <style>
+
+/*LOGO HUD*/
+#logo {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+
+  width: auto;
+  text-align: left;
+
+  z-index: 999;
+}
+
+#logo img {
+  width: 130px;
+  filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+}
+
+.logo-card {
+  background: rgba(0,0,0,0.35);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+
+  padding: 10px 20px;
+
+  display: inline-block;
+
+  backdrop-filter: blur(6px);
+
+  transition: 0.2s;
+}
+
+.logo-card:hover {
+  border-color: white;
+  background: rgba(255,255,255,0.05);
+}
+
+/* Card Shelter */
+.card.card-wide {
+  width: 100% !important;
+  max-width: 600px;
+}
+
+.card.leviathan-card {
+  width: 100% !important;
+  max-width: 650px;
+
+  border: 2px solid rgba(0, 180, 255, 0.7);
+  background: rgba(0, 0, 20, 0.5);
+}
+
+/*LOGO HUD*/
+
 body::before {
   content: "";
   position: fixed;
@@ -26,6 +79,12 @@ body {
 .karma-icon {
   width: 40px;
   opacity: 0.9;
+}
+
+.pip {
+  width: 10px;
+  height: 10px;
+  image-rendering: pixelated;
 }
 
 html, body {
@@ -254,6 +313,44 @@ input {
   to { opacity: 0.6; }
 }
 
+/* =========================
+   🔋 BARRA VERTICAL HP
+========================= */
+
+.hp-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.hp-vertical {
+  width: 8px;
+  height: 60px;
+
+  border: 2px solid rgba(255,255,255,0.4);
+  background: red;
+
+  display: flex;
+  flex-direction: column-reverse;
+
+  overflow: hidden;
+  border-radius: 0; /* sem arredondamento */
+}
+
+.hp-fill {
+  width: 100%;
+  background: lime; /* verde sólido estilo RW */
+  transition: height 0.2s;
+}
+
+/*BARRA DE VIDA CRIATURA*/
+.enemy-card .hud-main {
+  flex-direction: column;
+  align-items: center;
+}
+
+
 /*CARD HUD JOGADOR*/
 .hud-card {
   background: rgba(0,0,0,0.45);
@@ -265,12 +362,14 @@ input {
 
 .hud-top {
   display: flex;
-  gap: 10px;
   align-items: center;
+  gap: 10px;
 }
 
 .hud-img {
   width: 70px;
+  height: 70px;
+  object-fit: contain;
 }
 
 .hud-title {
@@ -328,6 +427,36 @@ input {
   font-size: 11px;
   color: #9aa3ad;
 }
+
+.hud-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hud-right {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.hud-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* lado direito (karma + pips) */
+.hud-right {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
 /*Fechar Card Hud jogador*/
 
 /*CARD DO HUD INIMIGO*/
@@ -362,6 +491,12 @@ input {
 </head>
 
 <body>
+
+<div id="logo">
+  <div class="logo-card">
+    <img src="img/rwr.png">
+  </div>
+</div>
 
 <div id="layout">
   <div id="panel">
@@ -588,7 +723,7 @@ let pips = "";
 for (let i = 0; i < player.maxComida; i++) {
 
   if (i < player.comida) {
-    pips += "<img src='img/pip_full.png' width='16'>";
+    pips += "<img src='img/pip_full.png' class='pip'>";
   } else {
     pips += "<img src='img/pip_empty.png' width='16'>";
   }
@@ -600,30 +735,36 @@ let karmaImg = "img/Karma_" + player.karma + ".png";
   document.getElementById("player").innerHTML = `
 <div class="hud-card">
 
-  <div class="hud-top">
-    <img src="${imgPlayer}" class="hud-img">
-    
-    <div>
+  <div class="hud-main">
+
+  <div class="hp-wrapper">
+    <div class="hp-vertical">
+      <div class="hp-fill" style="height:${hpPercent}%"></div>
+    </div>
+
+  <div class="hud-text">
+
+      <img src="${imgPlayer}" class="hud-img">
+
       <div class="hud-title">SLUGCAT</div>
       <div class="hud-sub">${player.classeAtual}</div>
 
+    </div>
+
+    <!-- KARMA + PIPS -->
+    <div class="hud-right">
+
       <img src="${karmaImg}" class="karma-icon">
+
+      <div style="display:flex; gap:4px;">
+        ${pips}
+      </div>
+
     </div>
+
   </div>
 
-  <div class="hud-section">
-    <div class="hud-label">HP</div>
-    <div class="bar">
-      <div class="bar-fill" style="width:${hpPercent}%"></div>
-      <div class="bar-text">${player.hp} / ${player.maxHp}</div>
-    </div>
-  </div>
-
-  <div class="hud-section">
-    <div class="hud-label">Comida</div>
-    <div>${pips}</div>
-  </div>
-
+  <!-- STATS -->
   <div class="hud-stats">
     <div>ATK: ${player.atk}</div>
     <div>DEF: ${player.def}</div>
@@ -633,6 +774,7 @@ let karmaImg = "img/Karma_" + player.karma + ".png";
     <div>INT: ${player.int}</div>
   </div>
 
+  <!-- INFO -->
   <div class="hud-info">
     Sala: ${room}/5<br>
     Fases: ${fasesCompletadas}<br>
@@ -857,7 +999,11 @@ function enemyGen() {
 
   {name:"DLL", hp:999, atk:999} 
 ];
-  return list[Math.floor(Math.random()*list.length)];
+  let e = list[Math.floor(Math.random()*list.length)];
+return {
+  ...e,
+  maxHp: e.hp
+};
 }
 
 function eventoDLL() {
@@ -939,7 +1085,7 @@ function tentarEsconder() {
     print("Você foi detectado!", "combate");
 
     let dmg = Math.max(0, enemy.atk - player.def);
-    player.hp -= dmg;
+    aplicarDanoPlayer(dmg);
 
     print("Você recebeu " + dmg + " de dano surpresa!");
 
@@ -962,6 +1108,8 @@ function iniciarCombate(vantagem) {
     let dmg = player.atk + Math.floor(Math.random()*6);
     enemy.hp -= dmg;
 
+    updateEnemyHUD();
+
     print("Você causou " + dmg);
   }
 
@@ -981,7 +1129,7 @@ function iniciarCombate(vantagem) {
 function shelter() {
 
   printHTML(`
-    <div class="card" style="display:flex; gap:12px; align-items:center;">
+    <div class="card card-wide" style="display:flex; gap:12px; align-items:center;">
 
       <img src="img/shelter.png" width="90">
 
@@ -1032,6 +1180,19 @@ setAcoes(
   );
 
   updateEnemyHUD();
+}
+
+function aplicarDanoPlayer(dmg) {
+
+  player.hp -= dmg;
+
+  if (player.hp < 0) player.hp = 0;
+
+  updateHUD();
+
+  if (player.hp <= 0) {
+    gameOver();
+  }
 }
 
 function abrirHabilidades() {
@@ -1112,7 +1273,7 @@ function enemyTurn() {
   let defesaTotal = player.def + defesaTemp;
 
   let dmg = Math.max(0, enemy.atk - defesaTotal);
-  player.hp -= dmg;
+  aplicarDanoPlayer(dmg);
 
   defesaTemp = 0; // reseta depois de usar
 
@@ -1272,7 +1433,9 @@ function escolherHabilidade() {
 
 function matarInimigo() {
 
-  if (!enemy) return;
+  if (!enemy || enemyDead) return;
+
+  enemyDead = true;
 
   let nome = enemy.name;
 
@@ -1300,8 +1463,7 @@ print("⚡ Você absorveu energia (+1 Pip)", "evento");
 
   // 🎒 LOOT DO SCAVENGER
   if (nome === "Scavenger") {
-    let itens = ["pedra", "lança", "fruta"];
-    let drop = itens[Math.floor(Math.random()*itens.length)];
+    let item = sortearItem();
 
     if (player.inventario.length < limiteInventario()) {
   player.inventario.push(drop);
@@ -1364,7 +1526,7 @@ function eventoLeviata() {
   modo = "evento";
 
   printHTML(`
-    <div class="card evento-card">
+    <div class="card evento-card leviathan-card">
 
       <img src="img/leviathan.png" width="120">
 
@@ -1502,8 +1664,7 @@ printHTML(html, "");
 
 function eventoItem() {
 
-  let itens = ["pedra", "lança", "fruta"];
-  let item = itens[Math.floor(Math.random() * itens.length)];
+  let item = sortearItem();
 
   if (player.inventario.length < limiteInventario()) {
   player.inventario.push(drop);
@@ -1544,6 +1705,8 @@ function usarItem(nome) {
     enemy.hp -= 3;
 
     if (enemy.hp <= 0) {
+      matarInimigo();
+      let enemyDead = false;
   print("Inimigo derrotado!");
 
   onEnemyDeath(enemy.name); // 👈 AQUI
@@ -1566,6 +1729,8 @@ function usarItem(nome) {
   enemy.hp -= 6;
 
   if (enemy.hp <= 0) {
+    matarInimigo();
+    let enemyDead = false;
   print("Inimigo derrotado!");
 
   onEnemyDeath(enemy.name); // 👈 AQUI
@@ -1594,6 +1759,27 @@ function usarItem(nome) {
 }
 }
 
+function sortearItem() {
+
+  let tabela = [
+    { item: "pedra", peso: 50 },   // MUITO comum
+    { item: "fruta", peso: 35 },   // comum
+    { item: "lança", peso: 15 }    // raro
+  ];
+
+  let total = tabela.reduce((s, i) => s + i.peso, 0);
+  let roll = Math.random() * total;
+
+  let acumulado = 0;
+
+  for (let i of tabela) {
+    acumulado += i.peso;
+    if (roll <= acumulado) return i.item;
+  }
+
+  return "pedra";
+}
+
 function eventoLoja() {
 
   const todosItens = [
@@ -1612,7 +1798,7 @@ function eventoLoja() {
   }
 
   let html = `
-  <div class="card mercador" style="display:flex; gap:12px; align-items:center;">
+  <div class="card mercador card-wide" style="display:flex; gap:12px; align-items:center;">
     <img src="img/scavenger_merchant.png" width="90">
     <div>
       <div class="titulo-card">🏪 Mercador Scavenger</div>
@@ -1763,6 +1949,8 @@ function confirmarTroca(index, novoItem) {
 
 function gameOver() {
 
+  if (modo === "dead") return;
+
   setAcoes("");
 
   printHTML(
@@ -1793,8 +1981,6 @@ function gameOver() {
 
   modo = "dead";
 }
-
-printHTML("<div class='box'><h2>Rain World Rogue</h2></div>");
 
 setAcoes("<button onclick='startGame()'>Iniciar</button>");
 
@@ -1831,32 +2017,31 @@ function updateEnemyHUD() {
   let hpPercent = (enemy.hp / maxHp) * 100;
 
   info.innerHTML = `
-  <div class="hud-card enemy-card">
+<div class="hud-card enemy-card">
 
-    <div class="hud-top">
+  <div class="hud-top">
+
+  <div class="hp-vertical">
+  <div class="hp-fill" style="height:${hpPercent}%"></div>
+</div>
+
+  <div class="hud-main">
+
+    <div>
       <img src="${img}" class="hud-img">
-
-      <div>
-        <div class="hud-title">${enemy.name}</div>
-        <div class="hud-sub">Hostil</div>
-      </div>
-    </div>
-
-    <div class="hud-section">
-      <div class="hud-label">HP</div>
-      <div class="bar enemy-bar">
-        <div class="bar-fill enemy-fill" style="width:${hpPercent}%"></div>
-        <div class="bar-text">${enemy.hp} / ${maxHp}</div>
-      </div>
-    </div>
-
-    <div class="hud-stats">
-      <div>ATK: ${enemy.atk}</div>
-      <div>DEF: ${enemy.def || 0}</div>
+      <div class="hud-title">${enemy.name}</div>
+      <div class="hud-sub">Hostil</div>
     </div>
 
   </div>
-  `;
+
+  <div class="hud-stats">
+  <div>ATK: ${enemy.atk}</div>
+  <div>DEF: ${enemy.def || 0}</div>
+</div>
+
+</div>
+`;
 }
 
 function acaoAtacar() {
@@ -1876,6 +2061,8 @@ function acaoAtacar() {
   print("Você causa " + dmg + (crit ? " 💥 CRÍTICO!" : ""));
 
   if (enemy.hp <= 0) {
+    matarInimigo();
+    let enemyDead = false;
     print("Inimigo derrotado!");
 
     onEnemyDeath(enemy.name);
