@@ -318,7 +318,7 @@ let player = {
   def: 0,
 
   // 🍗 PIPS (energia)
-  comida: 7,
+  comida: 0,
   maxComida: 7,
 
   // 🧬 ATRIBUTOS
@@ -346,6 +346,9 @@ let player = {
   nivel: 1,
   xp: 0,
 
+  // 🔥 HABILIDADES
+  habilidades: [],
+
   inventario: []
 };
 
@@ -369,6 +372,93 @@ const evolucoes = {
   monk: ["gourmond", "santo"],
   survivor: ["watcher", "inv"],
   hunter: ["artificer", "spearmaster"]
+};
+const habilidades = {
+
+  // 🟡 MONK
+  monk: [
+    {
+      nome: "Empurrão",
+      custo: 1,
+      desc: "Ataque leve com chance de evitar dano",
+      efeito: (player, enemy) => {
+        let dmg = player.str + Math.floor(Math.random()*player.strDice);
+        enemy.hp -= dmg;
+
+        player.dodge += 2;
+
+        return `Empurrão causou ${dmg} e aumentou dodge!`;
+      },
+      nivel: 1
+    }
+  ],
+
+  // 🔵 SURVIVOR
+  survivor: [
+    {
+      nome: "Golpe Preciso",
+      custo: 2,
+      desc: "Alto dano baseado em REF",
+      efeito: (player, enemy) => {
+        let dmg = player.atk + player.ref * 2;
+        enemy.hp -= dmg;
+
+        return `Golpe preciso causou ${dmg}`;
+      },
+      nivel: 2
+    }
+  ],
+
+  // 🔴 HUNTER
+  hunter: [
+    {
+      nome: "Investida",
+      custo: 3,
+      desc: "Dano alto, risco maior",
+      efeito: (player, enemy) => {
+        let dmg = player.atk + player.str * 3;
+        enemy.hp -= dmg;
+
+        player.hp -= 2; // recoil
+
+        return `Investida causou ${dmg} (recuo de 2 HP)`;
+      },
+      nivel: 2
+    }
+  ],
+
+  // 🧀 GOURMOND
+  gourmond: [
+    {
+      nome: "Impacto Pesado",
+      custo: 3,
+      desc: "Dano massivo baseado em STR",
+      efeito: (player, enemy) => {
+        let dmg = player.str * 4;
+        enemy.hp -= dmg;
+
+        return `Impacto causou ${dmg}`;
+      },
+      nivel: 3
+    }
+  ],
+
+  // 🔥 ARTIFICER
+  artificer: [
+    {
+      nome: "Explosão",
+      custo: 4,
+      desc: "Dano absurdo",
+      efeito: (player, enemy) => {
+        let dmg = player.atk * 3;
+        enemy.hp -= dmg;
+
+        return `💥 Explosão causou ${dmg}`;
+      },
+      nivel: 3
+    }
+  ]
+
 };
 
 function print(t, tipo="normal") {
@@ -396,12 +486,15 @@ function updateHUD() {
 
   // barra de comida (pips)
 let pips = "";
+
 for (let i = 0; i < player.maxComida; i++) {
+
   if (i < player.comida) {
-    pips += "●";
+    pips += "<img src='img/pip_full.png' width='16'>";
   } else {
-    pips += "○";
+    pips += "<img src='img/pip_empty.png' width='16'>";
   }
+
 }
 
   document.getElementById("player").innerHTML =
@@ -410,7 +503,7 @@ for (let i = 0; i < player.maxComida; i++) {
     "SLUGCAT<br>" +
     "Classe: " + player.classeAtual + "<br><br>" +
 
-    "Comida: " + pips + "<br><br>" +
+    "Comida:<br>" + pips + "<br><br>" +
 
     "HP<br>" +
 "<div style='position:relative; border:2px solid #9bbc0f; width:100%; height:14px;'>" +
@@ -425,6 +518,12 @@ for (let i = 0; i < player.maxComida; i++) {
 
     "<br>ATK: " + player.atk +
 "<br>DEF: " + player.def +
+
+"<br><br>STR: " + player.str +
+"<br>REF: " + player.ref +
+"<br>VEL: " + player.vel +
+"<br>INT: " + player.int +
+
 "<br><br>Sala: " + room + "/5" +
 "<br>Fases concluídas: " + fasesCompletadas +
 "<br><br>Nível: " + player.nivel +
@@ -466,6 +565,7 @@ function selecionarClasse(cmd) {
   mostrarAcoes();
 }
 function mostrarAcoes() {
+  if (modo === "dead") return;
   setAcoes(
     "<button onclick='acaoExplorar()'>Explorar</button>" +
     "<button onclick='abrirInventario()'>Inventário</button>"
@@ -510,6 +610,115 @@ function abrirInventario() {
   setAcoes("<button onclick='mostrarAcoes()'>Voltar</button>");
 }
 
+function abrirInventarioCombate() {
+  if (modo === "dead") return;
+
+  if (player.inventario.length === 0) {
+    print("Inventário vazio", "sistema");
+    return;
+  }
+
+  let html = `
+    <div class="box">⚔️ Itens (Combate)</div>
+    <div class="card-container">
+  `;
+
+  player.inventario.forEach(item => {
+
+    html += `
+      <div class="card">
+
+        <div class="titulo-card">${item}</div>
+
+        <button onclick="usarItemCombate('${item}')">
+          Usar
+        </button>
+
+      </div>
+    `;
+
+  });
+
+  html += "</div>";
+
+  printHTML(html);
+
+  setAcoes("<button onclick='voltarCombate()'>Voltar</button>");
+}
+
+function voltarCombate() {
+  setAcoes(
+    "<button onclick='acaoAtacar()'>Atacar</button>" +
+    "<button onclick='acaoDefender()'>Defender</button>" +
+    "<button onclick='acaoAgir()'>Agir</button>" +
+    "<button onclick='acaoFugir()'>Fugir</button>" +
+    "<button onclick='abrirInventarioCombate()'>Itens</button>"
+  );
+}
+
+function usarItemCombate(nome) {
+  if (modo === "dead") return;
+
+  if (player.comida <= 0) {
+    print("Sem energia!", "evento");
+    return;
+  }
+
+  if (!player.inventario.includes(nome)) {
+    print("Item não encontrado!", "evento");
+    return;
+  }
+
+  // 🍎 CURA
+  if (nome === "fruta") {
+    player.hp = Math.min(player.hp + 10, player.maxHp);
+    print("🍎 Curou 10 HP");
+  }
+
+  // 🪨 PEDRA
+  if (nome === "pedra") {
+    let dmg = 3;
+    enemy.hp -= dmg;
+    print("🪨 Pedra causou " + dmg);
+  }
+
+  // 🔱 LANÇA
+  if (nome === "lança") {
+    let dmg = 6;
+    enemy.hp -= dmg;
+    print("🔱 Lança causou " + dmg);
+  }
+
+  // 🫧 BUBBLE FRUIT (ENERGIA)
+if (nome === "bubble") {
+  player.comida = Math.min(player.comida + 3, player.maxComida);
+  print("🫧 Recuperou 3 de energia!");
+}
+
+// 💣 LANÇA EXPLOSIVA
+if (nome === "lanca_explosiva") {
+  let dmg = 12;
+  enemy.hp -= dmg;
+  print("💣 Lança explosiva causou " + dmg);
+}
+
+  // remove item
+  player.inventario = player.inventario.filter(i => i !== nome);
+
+  player.comida--;
+
+  updateEnemyHUD();
+
+  // 👇 verifica morte do inimigo
+  if (enemy && enemy.hp <= 0) {
+  matarInimigo();
+  return;
+}
+
+  // 👇 turno inimigo depois do item
+  enemyTurn();
+}
+
 // 🎲 INIMIGOS
 function enemyGen() {
   let list = [
@@ -525,6 +734,9 @@ function enemyGen() {
 
 // 🏃 SALAS
 function nextRoom() {
+
+  if (modo === "dead") return;
+
   room++;
 
   if (room > 5) {
@@ -587,7 +799,8 @@ setAcoes(
   "<button onclick='acaoAtacar()'>Atacar</button>" +
   "<button onclick='acaoDefender()'>Defender</button>" +
   "<button onclick='acaoAgir()'>Agir</button>" +
-  "<button onclick='acaoFugir()'>Fugir</button>"
+  "<button onclick='acaoFugir()'>Fugir</button>" +
+  "<button onclick='abrirInventarioCombate()'>Itens</button>"
 );
 
   updateEnemyHUD();
@@ -610,6 +823,34 @@ function enemyTurn() {
     gameOver();
   }
 }
+
+function onEnemyDeath(nome) {
+
+  // 💰 pérolas continuam normais
+  player.perolas += Math.floor(Math.random()*3)+1;
+
+  // ⚡ EFEITOS ESPECIAIS
+
+  if (nome === "Centipede") {
+    player.comida = Math.min(player.comida + 2, player.maxComida);
+    print("⚡ Você devorou a Centipede (+2 pips)", "evento");
+  }
+
+  if (nome === "Lagarto azul") {
+    player.hp = Math.min(player.hp + 3, player.maxHp);
+    print("💧 Você absorveu energia do lagarto (+3 HP)", "evento");
+  }
+
+  if (nome === "Scavenger") {
+    let drops = ["pedra", "lança", "fruta"];
+    let drop = drops[Math.floor(Math.random()*drops.length)];
+
+    player.inventario.push(drop);
+    print("🎒 O Scavenger dropou: " + drop, "evento");
+  }
+
+}
+
 function evoluirClasse(nova) {
   document.querySelectorAll(".evolucao-cards .card").forEach(card => {
   card.onclick = null;
@@ -685,8 +926,23 @@ function ganharXP(valor) {
 
     print("✨ LEVEL UP! Nível " + player.nivel, "evento");
 
-    escolherHabilidade();
+    desbloquearHabilidades();
   }
+}
+
+function desbloquearHabilidades() {
+
+  let lista = habilidades[player.classeAtual] || [];
+
+  lista.forEach(hab => {
+
+    if (player.nivel >= hab.nivel && !player.habilidades.includes(hab)) {
+      player.habilidades.push(hab);
+      print("🔥 Nova habilidade: " + hab.nome, "evento");
+    }
+
+  });
+
 }
 
 function escolherHabilidade() {
@@ -697,6 +953,68 @@ function escolherHabilidade() {
 
   let escolha = habilidades[Math.floor(Math.random() * habilidades.length)];
   escolha();
+}
+
+function matarInimigo() {
+
+  if (!enemy) return;
+
+  let nome = enemy.name;
+
+  print("Inimigo derrotado!");
+
+  // 💰 recompensa base
+  player.perolas += Math.floor(Math.random()*3)+1;
+  ganharXP(5);
+
+  player.comida = Math.min(player.comida + 1, player.maxComida);
+print("⚡ Você absorveu energia (+1 Pip)", "evento");
+
+  // 🍖 MECÂNICA DE COMER
+  if (nome === "Centipede") {
+    print("⚡ Você pode comer a Centipede!");
+
+    setAcoes(`
+      <button onclick="comerCentipede()">Comer</button>
+      <button onclick="ignorarCorpo()">Ignorar</button>
+    `);
+
+    modo = "loot";
+    return;
+  }
+
+  // 🎒 LOOT DO SCAVENGER
+  if (nome === "Scavenger") {
+    let itens = ["pedra", "lança", "fruta"];
+    let drop = itens[Math.floor(Math.random()*itens.length)];
+
+    player.inventario.push(drop);
+
+    print("🎒 O Scavenger dropou: " + drop);
+  }
+
+  finalizarPosMorte();
+}
+
+function comerCentipede() {
+  player.comida = Math.min(player.comida + 3, player.maxComida);
+  player.hp = Math.min(player.hp + 5, player.maxHp);
+
+  print("⚡ Você devorou a Centipede (+3 Pips, +5 HP)");
+
+  finalizarPosMorte();
+}
+
+function ignorarCorpo() {
+  print("Você deixou o corpo para trás...");
+  finalizarPosMorte();
+}
+
+function finalizarPosMorte() {
+  enemy = null;
+  updateEnemyHUD();
+  modo = "game";
+  mostrarAcoes();
 }
 
 // 🎯 EVENTOS
@@ -739,7 +1057,8 @@ player.evolucoes.forEach((e) => {
   html += criarCardClasse(
     e.toUpperCase(),
     e,
-    "img/" + e + ".png"
+    "img/" + e + ".png",
+    "evolucao"
   );
 });
 
@@ -778,16 +1097,28 @@ function usarItem(nome) {
   if (nome === "pedra") {
   print("🪨 Você arremessa uma pedra!");
 
+  if (nome === "bubble") {
+  player.comida = Math.min(player.comida + 3, player.maxComida);
+  print("🫧 Energia restaurada (+3)");
+}
+  
   if (enemy) {
     enemy.hp -= 3;
 
     if (enemy.hp <= 0) {
-      print("Inimigo derrotado!");
-      ganharXP(5);
-      enemy = null;
-      updateEnemyHUD();
-      modo = "game";
-    }
+  print("Inimigo derrotado!");
+
+  onEnemyDeath(enemy.name); // 👈 AQUI
+
+  ganharXP(5);
+
+  enemy = null;
+  updateEnemyHUD();
+  modo = "game";
+
+  mostrarAcoes();
+  return;
+}
   }
 }
 
@@ -797,12 +1128,19 @@ function usarItem(nome) {
   enemy.hp -= 6;
 
   if (enemy.hp <= 0) {
-    print("Inimigo derrotado!");
-    ganharXP(5);
-    enemy = null;
-    updateEnemyHUD();
-    modo = "game";
-  }
+  print("Inimigo derrotado!");
+
+  onEnemyDeath(enemy.name); // 👈 AQUI
+
+  ganharXP(5);
+
+  enemy = null;
+  updateEnemyHUD();
+  modo = "game";
+
+  mostrarAcoes();
+  return;
+}
 }
   }
 
@@ -811,53 +1149,69 @@ function usarItem(nome) {
   
   player.comida--;
 
+  if (modo === "combat") {
+  voltarCombate();
+} else {
   abrirInventario();
 }
+}
+
 function eventoLoja() {
 
-  printHTML(`
+  const todosItens = [
+    {nome: "fruta", preco: 2},
+    {nome: "pedra", preco: 3},
+    {nome: "lanca", preco: 5},
+    {nome: "bubble", preco: 4},
+    {nome: "lanca_explosiva", preco: 8}
+  ];
+
+  let escolhidos = [];
+
+  while (escolhidos.length < 3) {
+    let item = todosItens[Math.floor(Math.random() * todosItens.length)];
+    if (!escolhidos.includes(item)) escolhidos.push(item);
+  }
+
+  let html = `
   <div class="card mercador" style="display:flex; gap:12px; align-items:center;">
-
     <img src="img/scavenger_merchant.png" width="90">
-
     <div>
       <div class="titulo-card">🏪 Mercador Scavenger</div>
+      <div style="color:#9aa3ad;">Ofertas:</div>
+  `;
 
-      <div style="color:#9aa3ad;">Trocas:</div>
+  escolhidos.forEach(i => {
+    html += `<div>${i.nome} — ${i.preco}</div>`;
+  });
 
-      <div>🍎 Fruta — 2</div>
-      <div>🪨 Pedra — 3</div>
-      <div>🔱 Lança — 5</div>
-    </div>
+  html += `</div></div>`;
 
-  </div>
-`);
+  printHTML(html);
 
-  setAcoes(
-    "<button onclick='comprar(\"fruta\")'>Fruta</button>" +
-    "<button onclick='comprar(\"pedra\")'>Pedra</button>" +
-    "<button onclick='comprar(\"lanca\")'>Lança</button>" +
-    "<button onclick='sairLoja()'>Sair</button>"
-  );
+  let botoes = "";
+
+  escolhidos.forEach(i => {
+    botoes += `<button onclick="comprar('${i.nome}', ${i.preco})">${i.nome}</button>`;
+  });
+
+  botoes += "<button onclick='sairLoja()'>Sair</button>";
+
+  setAcoes(botoes);
 
   modo = "loja";
 }
-function comprar(item) {
-  let preco = {
-    fruta: 2,
-    pedra: 3,
-    lanca: 5
-  };
 
-  if (player.perolas >= preco[item]) {
-    player.perolas -= preco[item];
+function comprar(item, preco) {
+
+  if (player.perolas >= preco) {
+    player.perolas -= preco;
     player.inventario.push(item);
     print("Comprou " + item);
   } else {
     print("Sem pérolas!");
   }
 
-  mostrarAcoes();
 }
 
 function sairLoja() {
@@ -912,6 +1266,8 @@ function criarCardClasse(nome, classe, img, tipo="classe") {
 }
 
 function gameOver() {
+
+  setAcoes("");
 
   printHTML(
   "<div class='gameover'>" +
@@ -986,6 +1342,9 @@ info.innerHTML =
   "<br>ATK: " + enemy.atk;
 }
 function acaoAtacar() {
+
+  if (modo === "dead") return;
+
   if (!enemy) return;
 
   let crit = Math.random() < 0.25;
@@ -1000,7 +1359,8 @@ function acaoAtacar() {
 
   if (enemy.hp <= 0) {
     print("Inimigo derrotado!");
-    player.perolas += Math.floor(Math.random()*3)+1;
+
+    onEnemyDeath(enemy.name);
     ganharXP(5);
 
     enemy = null;
@@ -1015,12 +1375,24 @@ function acaoAtacar() {
 }
 
 function acaoDefender() {
+  if (modo === "dead") return;
   defesaTemp = 3;
   print("🛡️ Defesa ativada!");
   enemyTurn();
 }
 
 function acaoAgir() {
+  if (modo === "dead") return;
+
+  // ⚡ checa energia
+  if (player.comida <= 0) {
+    print("Sem energia!", "evento");
+    return;
+  }
+
+  // ⚡ gasta energia
+  player.comida--;
+
   if (Math.random() < 0.5) {
     print("Você desviou!");
   } else {
@@ -1028,18 +1400,28 @@ function acaoAgir() {
     enemyTurn();
   }
 
-  // 🔥 REEXIBE BOTÕES DE COMBATE
+  // 🔥 REEXIBE BOTÕES
   if (enemy) {
     setAcoes(
-  "<button onclick='acaoAtacar()'>Atacar</button>" +
-  "<button onclick='acaoDefender()'>Defender</button>" +
-  "<button onclick='acaoAgir()'>Agir</button>" +
-  "<button onclick='acaoFugir()'>Fugir</button>"
-);
+      "<button onclick='acaoAtacar()'>Atacar</button>" +
+      "<button onclick='acaoDefender()'>Defender</button>" +
+      "<button onclick='acaoAgir()'>Agir</button>" +
+      "<button onclick='acaoFugir()'>Fugir</button>" +
+      "<button onclick='abrirInventarioCombate()'>Itens</button>"
+    );
   }
 }
 
 function acaoFugir() {
+  if (modo === "dead") return;
+
+  if (player.comida <= 0) {
+    print("Sem energia!", "evento");
+    return;
+  }
+
+  player.comida--;
+
   if (Math.random() > 0.5) {
     print("Você fugiu!");
     enemy = null;
