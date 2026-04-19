@@ -557,6 +557,8 @@ function selecionarClasse(cmd) {
   player.atk = c.atk;
   player.def = c.def;
 
+  player.habilidades = [...(habilidades[cmd] || [])];
+  
   player.evolucoes = evolucoes[cmd] || [];
 
   print("Classe escolhida: " + cmd);
@@ -652,7 +654,8 @@ function voltarCombate() {
     "<button onclick='acaoDefender()'>Defender</button>" +
     "<button onclick='acaoAgir()'>Agir</button>" +
     "<button onclick='acaoFugir()'>Fugir</button>" +
-    "<button onclick='abrirInventarioCombate()'>Itens</button>"
+    "<button onclick='abrirInventarioCombate()'>Itens</button>" +
+    "<button onclick='abrirHabilidades()'>Habilidades</button>"
   );
 }
 
@@ -722,14 +725,48 @@ if (nome === "lanca_explosiva") {
 // 🎲 INIMIGOS
 function enemyGen() {
   let list = [
-    {name:"Scavenger", hp:25, atk:7},
-    {name:"Lagarto rosa", hp:40, atk:8, def:1},
-    {name:"Lagarto verde", hp:60, atk:14, def:2},
-    {name:"Lagarto azul", hp:20, atk:6},
-    {name:"Abutre", hp:120, atk:10},
-    {name:"Centipede", hp:14, atk:5}
-  ];
+
+  {name:"Scavenger", hp:25, atk:7},
+
+  {name:"Lagarto rosa", hp:40, atk:8, def:1},
+  {name:"Lagarto verde", hp:60, atk:14, def:2},
+  {name:"Lagarto azul", hp:20, atk:6},
+
+  {name:"Lagarto branco", hp:35, atk:9, def:1},
+  {name:"Lagarto preto", hp:50, atk:12}, 
+
+  {name:"Abutre", hp:120, atk:10},
+
+  {name:"Centipede", hp:14, atk:5},
+
+  {name:"Big Spider", hp:18, atk:11}, 
+  {name:"Miros Bird", hp:80, atk:18}, 
+
+  {name:"DLL", hp:999, atk:999} 
+];
   return list[Math.floor(Math.random()*list.length)];
+}
+
+function eventoDLL() {
+
+  modo = "evento";
+
+  printHTML(`
+    <div class="card evento-card">
+
+      <img src="img/dll.png" width="120">
+
+      <div class="titulo-card">👁️ DLL</div>
+      <div>Algo está te observando...</div>
+      <div style="color:#9aa3ad;">Você sente que não deveria estar aqui.</div>
+
+    </div>
+  `);
+
+  setAcoes(`
+    <button onclick="morteInstantanea()">Continuar andando</button>
+    <button onclick="mostrarAcoes()">Recuar lentamente</button>
+  `);
 }
 
 // 🏃 SALAS
@@ -796,14 +833,88 @@ function combat() {
   print("⚔️ Combate", "box");
 
 setAcoes(
-  "<button onclick='acaoAtacar()'>Atacar</button>" +
-  "<button onclick='acaoDefender()'>Defender</button>" +
-  "<button onclick='acaoAgir()'>Agir</button>" +
-  "<button onclick='acaoFugir()'>Fugir</button>" +
-  "<button onclick='abrirInventarioCombate()'>Itens</button>"
-);
+    "<button onclick='acaoAtacar()'>Atacar</button>" +
+    "<button onclick='acaoDefender()'>Defender</button>" +
+    "<button onclick='acaoAgir()'>Agir</button>" +
+    "<button onclick='acaoFugir()'>Fugir</button>" +
+    "<button onclick='abrirInventarioCombate()'>Itens</button>" +
+    "<button onclick='abrirHabilidades()'>Habilidades</button>"
+  );
 
   updateEnemyHUD();
+}
+
+function abrirHabilidades() {
+
+  if (modo === "dead") return;
+
+  if (player.habilidades.length === 0) {
+    print("Você não possui habilidades!", "sistema");
+    voltarCombate();
+    return;
+  }
+
+  let html = `
+    <div class="box">🔥 Habilidades</div>
+    <div class="card-container">
+  `;
+
+  player.habilidades.forEach(hab => {
+
+    html += `
+      <div class="card">
+
+        <div class="titulo-card">${hab.nome}</div>
+        <div>${hab.desc}</div>
+        <div>Custo: ${hab.custo}</div>
+
+        <button onclick="usarHabilidade('${hab.nome}')">
+          Usar
+        </button>
+
+      </div>
+    `;
+
+  });
+
+  html += "</div>";
+
+  printHTML(html);
+
+  setAcoes("<button onclick='voltarCombate()'>Voltar</button>");
+}
+
+function usarHabilidade(nome) {
+
+  if (modo === "dead") return;
+
+  let hab = player.habilidades.find(h => h.nome === nome);
+
+  if (!hab) return;
+
+  // ⚡ verifica energia
+  if (player.comida < hab.custo) {
+    print("Sem energia suficiente!", "evento");
+    return;
+  }
+
+  // ⚡ consome energia
+  player.comida -= hab.custo;
+
+  // 🎯 executa efeito
+  let resultado = hab.efeito(player, enemy);
+  print(resultado, "combate");
+
+  updateEnemyHUD();
+
+  // 💀 matou o inimigo?
+  if (enemy && enemy.hp <= 0) {
+    matarInimigo();
+    return;
+  }
+
+  // 👹 turno do inimigo
+  enemyTurn();
 }
 
 function enemyTurn() {
@@ -1018,26 +1129,83 @@ function finalizarPosMorte() {
 }
 
 // 🎯 EVENTOS
+
+function eventoLeviata() {
+
+  modo = "evento";
+
+  printHTML(`
+    <div class="card evento-card">
+
+      <img src="img/leviathan.png" width="120">
+
+      <div class="titulo-card">🌊 LEVIATÃ</div>
+      <div>Uma presença colossal se move nas profundezas...</div>
+      <div style="color:#9aa3ad;">Se ele te pegar... é morte instantânea.</div>
+
+    </div>
+  `);
+
+  setAcoes(`
+    <button onclick="fugirLeviata()">Fugir</button>
+    <button onclick="enfrentarLeviata()">Enfrentar</button>
+  `);
+}
+
+function fugirLeviata() {
+
+  if (Math.random() < 0.75) {
+    print("Você escapou por pouco!", "evento");
+    mostrarAcoes();
+    modo = "game";
+  } else {
+    print("O Leviatã te alcançou...", "combate");
+    morteInstantanea();
+  }
+}
+
+function enfrentarLeviata() {
+
+  if (Math.random() < 0.1) {
+    print("IMPOSSÍVEL... você sobreviveu?!", "evento");
+    player.perolas += 10;
+    mostrarAcoes();
+    modo = "game";
+  } else {
+    print("Você foi devorado.", "combate");
+    morteInstantanea();
+  }
+}
+
+function morteInstantanea() {
+  player.hp = 0;
+  gameOver();
+}
+
 function event() {
   let roll = Math.random();
 
-  if (roll < 0.4) {
+  if (roll < 0.35) {
     print("Evento estranho na sala...", "evento");
   } 
-  else if (roll < 0.7) {
+  else if (roll < 0.65) {
     player.hp = Math.min(player.hp + 5, player.maxHp);
     print("Você encontrou comida (+5 HP)");
   } 
-  else if (roll < 0.85) {
+  else if (roll < 0.80) {
     eventoItem();
   }
-  else if (roll < 0.95) {
+  else if (roll < 0.90) {
     eventoLoja();
   }
-  else {
+  else if (roll < 0.97) {
     eventoEvolucao();
   }
+  else {
+    eventoLeviata(); // 👈 RARO E PERIGOSO
+  }
 }
+
 function eventoEvolucao() {
 
   if (!player.evolucoes.length) {
@@ -1068,6 +1236,7 @@ printHTML(html, "");
 
   modo = "evolucao";
 }
+
 function eventoItem() {
 
   let itens = ["pedra", "lança", "fruta"];
@@ -1077,6 +1246,7 @@ function eventoItem() {
 
   print("🎁 Você encontrou: " + item, "evento");
 }
+
 function usarItem(nome) {
 
   if (player.comida <= 0) {
@@ -1227,6 +1397,7 @@ function printHTML(html, c="") {
   term.scrollTop = term.scrollHeight;
   updateHUD();
 }
+
 function alertaInimigo(nome) {
   printHTML(`
     <div class="alerta">
@@ -1235,6 +1406,7 @@ function alertaInimigo(nome) {
     </div>
   `);
 }
+
 function setAcoes(html) {
   document.getElementById("actions").innerHTML =
     `<div class="actions-card">${html}</div>`;
@@ -1312,14 +1484,21 @@ function updateEnemyHUD() {
   }
 
   // define imagem baseada no nome
-  let img = "";
+  const enemyImages = {
+  "Scavenger": "img/scavenger.png",
+  "Lagarto rosa": "img/lagarto-rosa.png",
+  "Lagarto verde": "img/lagarto-verde.png",
+  "Lagarto azul": "img/lagarto-azul.png",
+  "Lagarto branco": "img/lagarto-branco.png",
+  "Lagarto preto": "img/lagarto-preto.png",
+  "Abutre": "img/abutre.png",
+  "Centipede": "img/centipede.png",
+  "Big Spider": "img/bigs-pider.png",
+  "Miros Bird": "img/miros-bird.png",
+  "DLL": "img/dll.png"
+};
 
-  if (enemy.name === "Scavenger") img = "img/scavenger.png";
-  if (enemy.name === "Lagarto rosa") img = "img/lagarto-rosa.png";
-  if (enemy.name === "Lagarto verde") img = "img/lagarto-verde.png";
-  if (enemy.name === "Lagarto azul") img = "img/lagarto-azul.png";
-  if (enemy.name === "Abutre") img = "img/abutre.png";
-  if (enemy.name === "Centipede") img = "img/centipede.png";
+let img = enemyImages[enemy.name] || "img/unknown.png";
 
   let maxHp = enemy.maxHp || enemy.hp;
   let hpPercent = (enemy.hp / maxHp) * 100;
@@ -1341,6 +1520,7 @@ info.innerHTML =
 
   "<br>ATK: " + enemy.atk;
 }
+
 function acaoAtacar() {
 
   if (modo === "dead") return;
