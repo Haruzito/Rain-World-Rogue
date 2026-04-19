@@ -1382,16 +1382,8 @@ function acaoDefender() {
 }
 
 function acaoAgir() {
+
   if (modo === "dead") return;
-
-  // ⚡ checa energia
-  if (player.comida <= 0) {
-    print("Sem energia!", "evento");
-    return;
-  }
-
-  // ⚡ gasta energia
-  player.comida--;
 
   if (Math.random() < 0.5) {
     print("Você desviou!");
@@ -1413,14 +1405,8 @@ function acaoAgir() {
 }
 
 function acaoFugir() {
+
   if (modo === "dead") return;
-
-  if (player.comida <= 0) {
-    print("Sem energia!", "evento");
-    return;
-  }
-
-  player.comida--;
 
   if (Math.random() > 0.5) {
     print("Você fugiu!");
