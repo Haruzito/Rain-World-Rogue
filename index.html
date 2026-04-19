@@ -561,6 +561,7 @@ let term = document.getElementById("terminal");
 let modo = "menu";
 let fase = 1;
 let room = 1;
+let bloqueioProgresso = false;
 function checarRegiao() {
 
   if (room % 10 === 0) {
@@ -1133,10 +1134,13 @@ function enemyGen() {
 
 function tentarTrocarRegiao() {
 
+  if (modo !== "game") return;
+
   let proxima = regioes[indiceRegiao + 1];
 
   if (!proxima) {
     print("Você já está na última região.", "sistema");
+    bloqueioProgresso = false;
     return;
   }
 
@@ -1148,6 +1152,7 @@ function tentarTrocarRegiao() {
   `);
 
   modo = "regiao";
+  bloqueioProgresso = true;
 }
 
 function confirmarRegiao() {
@@ -1171,13 +1176,19 @@ function confirmarRegiao() {
   print("🌍 Você entrou em " + regiao.nome, "evento");
 
   room = 1;
+  
   modo = "game";
+
+  bloqueioProgresso = false;
 
   mostrarAcoes();
 }
 
 function continuarAqui() {
   print("Você decide continuar na região atual.", "evento");
+
+  bloqueioProgresso = false;
+
   mostrarAcoes();
   modo = "game";
 }
@@ -1215,7 +1226,11 @@ let fugaBonus = 0;
 // 🏃 SALAS
 function nextRoom() {
 
+  if (modo !== "game") return;
+  if (bloqueioProgresso) return;
+
   if (room >= SALAS_POR_REGIAO) {
+    bloqueioProgresso = true;
     tentarTrocarRegiao();
     return;
   }
