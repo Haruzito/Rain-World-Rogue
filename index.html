@@ -181,6 +181,30 @@ html, body {
   background: rgba(0,0,0,0.4);
 }
 
+/*REGIÕES CARD*/
+#regiaoBanner {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  z-index: 999;
+
+  background: rgba(0,0,0,0.5);
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 10px;
+
+  padding: 8px 20px;
+
+  color: white;
+  font-weight: bold;
+  letter-spacing: 2px;
+
+  backdrop-filter: blur(6px);
+
+  text-transform: uppercase;
+}
+
 /* 🧾 CARD BASE DO CHAT */
 .msg-card {
   background: rgba(0,0,0,0.35);
@@ -346,7 +370,7 @@ input {
 
 /*BARRA DE VIDA CRIATURA*/
 .enemy-card .hud-main {
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
 }
 
@@ -498,6 +522,8 @@ input {
   </div>
 </div>
 
+<div id="regiaoBanner"></div>
+
 <div id="layout">
   <div id="panel">
 
@@ -513,8 +539,12 @@ input {
 </div>
 
     <div id="right">
-      <div id="info"></div>
-    </div>
+
+  <div id="regiaoHUD"></div>
+
+  <div id="info"></div>
+
+</div>
 
   </div>
 </div>
@@ -526,6 +556,13 @@ let term = document.getElementById("terminal");
 let modo = "menu";
 let fase = 1;
 let room = 1;
+function checarRegiao() {
+
+  if (room % 10 === 0) {
+    eventoRegiao();
+  }
+
+}
 let enemy = null;
 let fasesCompletadas = 0;
 updateEnemyHUD();
@@ -533,6 +570,11 @@ let results = [];
 
 let defesaTemp = 0;
 
+let regiao = {
+  nome: "Outskirts",
+  karmaNecessario: 0,
+  bg: "img/bg_outskirts.jpg"
+};
 let player = {
   nome: "",
   classeBase: "",
@@ -584,6 +626,26 @@ maxKarma: 10,
 
   inventario: []
 };
+
+const regioes = [
+  {
+    nome: "Outskirts",
+    karmaNecessario: 0,
+    bg: "img/bg_outskirts.jpg"
+  },
+  {
+    nome: "Industrial Complex",
+    karmaNecessario: 3,
+    bg: "img/bg_industrial.jpg"
+  },
+  {
+    nome: "Shaded Citadel",
+    karmaNecessario: 6,
+    bg: "img/bg_shaded.jpg"
+  }
+];
+
+let indiceRegiao = 0;
 
 // 🎮 CLASSES SLUGCAT
 const classes = {
@@ -780,11 +842,25 @@ let karmaImg = "img/Karma_" + player.karma + ".png";
     Fases: ${fasesCompletadas}<br>
     Nível: ${player.nivel}<br>
     Pérolas: ${player.perolas}
+
+    Região: ${regiao.nome}<br>
+    Karma Req: ${regiao.karmaNecessario}<br>
   </div>
 
 </div>
 `;
 (player.inventario.join(", ") || "Vazio");
+
+atualizarBannerRegiao();
+}
+
+function atualizarBannerRegiao() {
+
+  let banner = document.getElementById("regiaoBanner");
+
+  banner.innerHTML = `
+    🌍 ${regiao.nome}
+  `;
 }
 
 function startGame() {
@@ -979,31 +1055,126 @@ if (nome === "lanca_explosiva") {
 
 // 🎲 INIMIGOS
 function enemyGen() {
-  let list = [
 
-  {name:"Scavenger", hp:25, atk:7},
+  let list = [];
 
-  {name:"Lagarto rosa", hp:40, atk:8, def:1},
-  {name:"Lagarto verde", hp:60, atk:14, def:2},
-  {name:"Lagarto azul", hp:20, atk:6},
+  // 🌿 OUTSKIRTS (região inicial - mais fraca e equilibrada)
+  if (regiao.nome === "Outskirts") {
+    list = [
+      {name:"Scavenger", hp:25, atk:7},
+      {name:"Lagarto rosa", hp:40, atk:8},
+      {name:"Batfly Swarm", hp:12, atk:4},
+      {name:"Centipede", hp:14, atk:5}
+    ];
+  }
 
-  {name:"Lagarto branco", hp:35, atk:9, def:1},
-  {name:"Lagarto preto", hp:20, atk:8}, 
+  // 🏭 INDUSTRIAL COMPLEX (combate médio + variedade)
+  if (regiao.nome === "Industrial Complex") {
+    list = [
+      {name:"Centipede", hp:14, atk:5},
+      {name:"Big Spider", hp:18, atk:11},
 
-  {name:"Abutre", hp:120, atk:10},
+      {name:"Scavenger", hp:25, atk:7},
+      {name:"Elite Scavenger", hp:45, atk:10, def:2},
 
-  {name:"Centipede", hp:14, atk:5},
+      {name:"Lagarto verde", hp:60, atk:14, def:2},
+      {name:"Jet Lizard", hp:50, atk:16, def:1}
+    ];
+  }
 
-  {name:"Big Spider", hp:18, atk:11}, 
-  {name:"Miros Bird", hp:80, atk:18}, 
+  // 🌑 SHADED CITADEL (alto perigo + voadores + horror)
+  if (regiao.nome === "Shaded Citadel") {
+    list = [
+      {name:"Miros Bird", hp:80, atk:18},
+      {name:"Abutre", hp:120, atk:10},
 
-  {name:"DLL", hp:999, atk:999} 
-];
-  let e = list[Math.floor(Math.random()*list.length)];
-return {
-  ...e,
-  maxHp: e.hp
-};
+      {name:"DLL", hp:999, atk:999},
+
+      {name:"Lagarto preto", hp:20, atk:8},
+      {name:"Cobra Lizard", hp:55, atk:13, def:3},
+
+      {name:"Spider Nest", hp:35, atk:14},
+      {name:"Big Spider", hp:18, atk:11}
+    ];
+  }
+
+  // 🌊 DRAINAGE SYSTEM (nova região lógica)
+  if (regiao.nome === "Drainage System") {
+    list = [
+      {name:"Centipede", hp:14, atk:5},
+      {name:"Mosca morcego", hp:12, atk:4},
+
+      {name:"Cobra Lizard", hp:55, atk:13, def:3},
+
+      {name:"Lagarto azul", hp:20, atk:6},
+      {name:"Lagarto branco", hp:35, atk:9, def:1}
+    ];
+  }
+
+  // ⚡ fallback (evita bug se região não bater)
+  if (list.length === 0) {
+    list = [
+      {name:"Scavenger", hp:25, atk:7}
+    ];
+  }
+
+  let e = list[Math.floor(Math.random() * list.length)];
+
+  return {
+    ...e,
+    maxHp: e.hp
+  };
+}
+
+function tentarTrocarRegiao() {
+
+  let proxima = regioes[indiceRegiao + 1];
+
+  if (!proxima) {
+    print("Você já está na última região.", "sistema");
+    return;
+  }
+
+  print("🌍 Você encontrou a transição para: " + proxima.nome, "evento");
+
+  setAcoes(`
+    <button onclick="confirmarRegiao()">Avançar</button>
+    <button onclick="continuarAqui()">Ficar</button>
+  `);
+
+  modo = "regiao";
+}
+
+function confirmarRegiao() {
+
+  let proxima = regioes[indiceRegiao + 1];
+
+  if (player.karma < proxima.karmaNecessario) {
+    print("❌ Karma insuficiente para entrar!", "evento");
+    mostrarAcoes();
+    modo = "game";
+    return;
+  }
+
+  indiceRegiao++;
+  regiao = regioes[indiceRegiao];
+
+  document.body.style.backgroundImage = `url('${regiao.bg}')`;
+
+  updateRegiaoHUD();
+
+  print("🌍 Você entrou em " + regiao.nome, "evento");
+
+  room = 1;
+  modo = "game";
+
+  mostrarAcoes();
+}
+
+function continuarAqui() {
+  print("Você decide continuar na região atual.", "evento");
+  mostrarAcoes();
+  modo = "game";
 }
 
 function eventoDLL() {
@@ -1028,14 +1199,25 @@ function eventoDLL() {
   `);
 }
 
+// REGRAS GLOBAIS
+const SALAS_POR_SHELTER = 10;
+const SALAS_POR_REGIAO = 15;
+const PIPS_PARA_HIBERNAR = 5;
+
+// VARIAVEIS GLOBAIS
+let fugaBonus = 0;
+
 // 🏃 SALAS
 function nextRoom() {
 
-  if (modo === "dead") return;
+  if (room >= SALAS_POR_REGIAO) {
+    tentarTrocarRegiao();
+    return;
+  }
 
   room++;
 
-  if (room > 5) {
+  if (room >= SALAS_POR_SHELTER) {
     shelter();
     return;
   }
@@ -1135,25 +1317,57 @@ function shelter() {
 
       <div>
         <div class="titulo-card">🏕 Abrigo Seguro</div>
-        <div>Você descansou...</div>
-        <div style="color:#9aa3ad;">HP restaurado</div>
+
+        <div>Você precisa hibernar para continuar.</div>
+
+        <div style="color:#9aa3ad;">
+          Necessário: ${PIPS_PARA_HIBERNAR} pips
+        </div>
+
+        <div>Você tem: ${player.comida}</div>
       </div>
 
     </div>
   `);
 
+  // ❌ NÃO TEM COMIDA SUFICIENTE
+  if (player.comida < PIPS_PARA_HIBERNAR) {
+
+    print("❌ Você não tem energia suficiente para hibernar!", "evento");
+
+    setAcoes(`
+      <button onclick='continuarAposAbrigo()'>Sair do abrigo</button>
+    `);
+
+    modo = "shelter_blocked";
+    return;
+  }
+
+  // ✅ TEM COMIDA → pode hibernar
+  setAcoes(`
+    <button onclick='hibernar()'>Hibernar</button>
+  `);
+
+  modo = "shelter";
+}
+
+function hibernar() {
+
+  player.comida -= PIPS_PARA_HIBERNAR;
+
   player.hp = player.maxHp;
 
-  player.comida = player.maxComida;
+  print("🌙 Você hibernou e recuperou energia!", "evento");
 
   room = 0;
   fase++;
   fasesCompletadas++;
 
-  setAcoes("<button onclick='continuarAposAbrigo()'>Continuar</button>");
+  setAcoes("<button onclick='continuarAposAbrigo()'>Acordar</button>");
 
   modo = "shelter";
 }
+
 function continuarAposAbrigo() {
   print("Você sai do abrigo...", "evento");
   mostrarAcoes();
@@ -1308,7 +1522,7 @@ function onEnemyDeath(nome) {
     let drop = drops[Math.floor(Math.random()*drops.length)];
 
     if (player.inventario.length < limiteInventario()) {
-  player.inventario.push(drop);
+  player.inventario.push(item);
   print("Item obtido: " + item);
 } else {
   print("Inventário cheio!", "evento");
@@ -1389,8 +1603,6 @@ function evoluirClasse(nova) {
     <div style="color:#9aa3ad;">Nova forma desbloqueada</div>
   </div>
 
-  modo = "game";
-
 `);
 }
 function ganharXP(valor) {
@@ -1433,9 +1645,7 @@ function escolherHabilidade() {
 
 function matarInimigo() {
 
-  if (!enemy || enemyDead) return;
-
-  enemyDead = true;
+  if (!enemy) return;
 
   let nome = enemy.name;
 
@@ -1446,9 +1656,9 @@ function matarInimigo() {
   ganharXP(5);
 
   player.comida = Math.min(player.comida + 1, player.maxComida);
-print("⚡ Você absorveu energia (+1 Pip)", "evento");
+  print("⚡ Você absorveu energia (+1 Pip)", "evento");
 
-  // 🍖 MECÂNICA DE COMER
+  // 🍖 CENTIPEDE
   if (nome === "Centipede") {
     print("⚡ Você pode comer a Centipede!");
 
@@ -1461,18 +1671,17 @@ print("⚡ Você absorveu energia (+1 Pip)", "evento");
     return;
   }
 
-  // 🎒 LOOT DO SCAVENGER
+  // 🎒 SCAVENGER
   if (nome === "Scavenger") {
+
     let item = sortearItem();
 
     if (player.inventario.length < limiteInventario()) {
-  player.inventario.push(drop);
-  print("Item obtido: " + item);
-} else {
-  print("Inventário cheio!", "evento");
-}
-
-    print("🎒 O Scavenger dropou: " + drop);
+      player.inventario.push(item);
+      print("🎒 Item obtido: " + item);
+    } else {
+      print("Inventário cheio!", "evento");
+    }
   }
 
   finalizarPosMorte();
@@ -1568,6 +1777,46 @@ function enfrentarLeviata() {
   }
 }
 
+function eventoRegiao() {
+
+  let regioes = [
+    { nome: "Outskirts", karma: 1, bg: "img/bg_outskirts.jpg" },
+    { nome: "Industrial Complex", karma: 2, bg: "img/bg_industrial.jpg" },
+    { nome: "Drainage System", karma: 3, bg: "img/bg_drainage.jpg" },
+    { nome: "Shaded Citadel", karma: 4, bg: "img/bg_shaded.jpg" }
+  ];
+
+  let nova = regioes[Math.floor(Math.random() * regioes.length)];
+
+  printHTML(`
+    <div class="card evento-card">
+
+      <div class="titulo-card">🌍 Nova Região Encontrada</div>
+
+      <div><b>${nova.nome}</b></div>
+
+      <div style="color:#9aa3ad;">
+        Karma necessário: ${nova.karma}
+      </div>
+
+    </div>
+  `);
+
+  setAcoes(`
+
+    <button onclick='entrarRegiao(${JSON.stringify(nova)})'>
+      Entrar
+    </button>
+
+    <button onclick='continuarRegiao()'>
+      Continuar aqui
+    </button>
+
+  `);
+
+  modo = "regiao";
+}
+
 function morteInstantanea() {
   player.hp = 0;
   gameOver();
@@ -1576,31 +1825,27 @@ function morteInstantanea() {
 function event() {
   let roll = Math.random();
 
-  if (roll < 0.35) {
-    print("Evento estranho na sala...", "evento");
-  } 
-  else if (roll < 0.65) {
-    player.hp = Math.min(player.hp + 5, player.maxHp);
-    print("Você encontrou comida (+5 HP)");
-  } 
-  else if (roll < 0.80) {
-    eventoItem();
-  }
-  else if (roll < 0.90) {
-    eventoLoja();
-  }
-  else if (roll < 0.97) {
-    eventoEvolucao();
-  }
-  else if (roll < 0.97) {
-  eventoEco();
-  }
-  else if (roll < 0.25) {
+  if (roll < 0.25) {
   eventoComida();
-  }
-  else {
-    eventoLeviata(); // 👈 RARO E PERIGOSO
-  }
+}
+else if (roll < 0.35) {
+  print("Evento estranho...", "evento");
+}
+else if (roll < 0.65) {
+  player.hp = Math.min(player.hp + 5, player.maxHp);
+}
+else if (roll < 0.80) {
+  eventoItem();
+}
+else if (roll < 0.90) {
+  eventoLoja();
+}
+else if (roll < 0.97) {
+  eventoEvolucao();
+}
+else {
+  eventoEco();
+}
 }
 
 function eventoComida() {
@@ -1616,6 +1861,38 @@ function eventoComida() {
   );
 
   modo = "evento";
+}
+
+function entrarRegiao(nova) {
+
+  if (player.karma < nova.karma) {
+    print("❌ Karma insuficiente!", "evento");
+    mostrarAcoes();
+    modo = "game";
+    return;
+  }
+
+  aplicarRegiao(nova);
+}
+
+function continuarRegiao() {
+  print("Você permanece na região atual.", "evento");
+  mostrarAcoes();
+  modo = "game";
+}
+
+function aplicarRegiao(nova) {
+
+  regiao = nova;
+
+  atualizarBannerRegiao();
+
+  document.body.style.backgroundImage = `url('${nova.bg}')`;
+
+  print("🌍 Agora você está em: " + nova.nome, "evento");
+
+  mostrarAcoes();
+  modo = "game";
 }
 
 function tentarPegarComida(nome) {
@@ -1666,8 +1943,8 @@ function eventoItem() {
 
   let item = sortearItem();
 
-  if (player.inventario.length < limiteInventario()) {
-  player.inventario.push(drop);
+if (player.inventario.length < limiteInventario()) {
+  player.inventario.push(item);
   print("Item obtido: " + item);
 } else {
   print("Inventário cheio!", "evento");
@@ -1696,6 +1973,8 @@ function usarItem(nome) {
   if (nome === "pedra") {
   print("🪨 Você arremessa uma pedra!");
 
+  fugaBonus += 0.25; // +25% fuga
+  
   if (nome === "bubble") {
   player.comida = Math.min(player.comida + 3, player.maxComida);
   print("🫧 Energia restaurada (+3)");
@@ -1706,7 +1985,6 @@ function usarItem(nome) {
 
     if (enemy.hp <= 0) {
       matarInimigo();
-      let enemyDead = false;
   print("Inimigo derrotado!");
 
   onEnemyDeath(enemy.name); // 👈 AQUI
@@ -1730,7 +2008,6 @@ function usarItem(nome) {
 
   if (enemy.hp <= 0) {
     matarInimigo();
-    let enemyDead = false;
   print("Inimigo derrotado!");
 
   onEnemyDeath(enemy.name); // 👈 AQUI
@@ -1846,7 +2123,7 @@ function comprar(item, preco) {
   if (player.perolas >= preco) {
     player.perolas -= preco;
     if (player.inventario.length < limiteInventario()) {
-  player.inventario.push(drop);
+  player.inventario.push(item);
   print("Item obtido: " + item);
 } else {
   print("Inventário cheio!", "evento");
@@ -2013,18 +2290,36 @@ function updateEnemyHUD() {
   }
 
   const enemyImages = {
-    "Scavenger": "img/scavenger.png",
-    "Lagarto rosa": "img/lagarto-rosa.png",
-    "Lagarto verde": "img/lagarto-verde.png",
-    "Lagarto azul": "img/lagarto-azul.png",
-    "Lagarto branco": "img/lagarto-branco.png",
-    "Lagarto preto": "img/lagarto-preto.png",
-    "Abutre": "img/abutre.png",
-    "Centipede": "img/centipede.png",
-    "Big Spider": "img/big-spider.png",
-    "Miros Bird": "img/miros-bird.png",
-    "DLL": "img/dll.png"
-  };
+  "Scavenger": "img/scavenger.png",
+
+  // 🦎 LAGARTOS
+  "Lagarto rosa": "img/lagarto-rosa.png",
+  "Lagarto verde": "img/lagarto-verde.png",
+  "Lagarto azul": "img/lagarto-azul.png",
+  "Lagarto branco": "img/lagarto-branco.png",
+  "Lagarto preto": "img/lagarto-preto.png",
+
+  // 🐛 INSETOS
+  "Centipede": "img/centipede.png",
+  "Batfly Swarm": "img/batfly.png",
+  "Eggbug": "img/eggbug.png",
+
+  // 🕷️ ARACNÍDEOS
+  "Big Spider": "img/big-spider.png",
+  "Spider Nest": "img/spider-nest.png",
+
+  // 🦅 VOADORES
+  "Abutre": "img/abutre.png",
+  "Miros Bird": "img/miros-bird.png",
+
+  // 🌑 ENTIDADES ESPECIAIS
+  "DLL": "img/dll.png",
+
+  // ⚡ NOVOS EXEMPLOS (os teus sistemas novos provavelmente vão usar isso)
+  "Elite Scavenger": "img/scavenger_elite.png",
+  "Jet Lizard": "img/jet-lizard.png",
+  "Cobra Lizard": "img/cobra-lizard.png"
+};
 
   let img = enemyImages[enemy.name] || "img/unknown.png";
 
@@ -2032,31 +2327,36 @@ function updateEnemyHUD() {
   let hpPercent = (enemy.hp / maxHp) * 100;
 
   info.innerHTML = `
-<div class="hud-card enemy-card">
+  <div class="hud-card enemy-card">
 
-  <div class="hud-top">
+    <div class="hud-main">
 
-  <div class="hp-vertical">
-  <div class="hp-fill" style="height:${hpPercent}%"></div>
-</div>
+      <!-- HP VERTICAL (ESQUERDA) -->
+      <div class="hp-wrapper">
+        <div class="hp-vertical">
+          <div class="hp-fill" style="height:${hpPercent}%"></div>
+        </div>
+      </div>
 
-  <div class="hud-main">
+      <!-- INFO CENTRAL -->
+      <div class="hud-text">
+        <img src="${img}" class="hud-img">
+        <div class="hud-title">${enemy.name}</div>
+        <div class="hud-sub">Hostil</div>
+      </div>
 
-    <div>
-      <img src="${img}" class="hud-img">
-      <div class="hud-title">${enemy.name}</div>
-      <div class="hud-sub">Hostil</div>
+      <!-- STATS DIREITA -->
+      <div class="hud-right">
+        <div class="hud-stats">
+          <div>ATK: ${enemy.atk}</div>
+          <div>DEF: ${enemy.def || 0}</div>
+        </div>
+      </div>
+
     </div>
 
   </div>
-
-  <div class="hud-stats">
-  <div>ATK: ${enemy.atk}</div>
-  <div>DEF: ${enemy.def || 0}</div>
-</div>
-
-</div>
-`;
+  `;
 }
 
 function acaoAtacar() {
@@ -2077,7 +2377,6 @@ function acaoAtacar() {
 
   if (enemy.hp <= 0) {
     matarInimigo();
-    let enemyDead = false;
     print("Inimigo derrotado!");
 
     onEnemyDeath(enemy.name);
@@ -2128,17 +2427,36 @@ function acaoFugir() {
 
   if (modo === "dead") return;
 
-  if (Math.random() > 0.5) {
-    print("Você fugiu!");
+  let chance = 0.5; // base
+
+  // 🪶 vantagem se estiver muito machucado
+  if (player.hp < player.maxHp * 0.3) {
+    chance += 0.15;
+  }
+
+  // ⚔️ inimigo mais forte reduz chance
+  if (enemy.atk > player.def) {
+    chance -= 0.1;
+  }
+
+  // 🧠 limite de segurança (evita chance negativa ou absurda)
+  chance = Math.max(0.05, Math.min(chance, 0.9));
+
+  if (Math.random() < chance) {
+    print("Você conseguiu fugir!");
+
     enemy = null;
     updateEnemyHUD();
+
     modo = "game";
     mostrarAcoes();
+
   } else {
     print("Falha ao fugir!");
     enemyTurn();
   }
 }
+
 function reiniciarJogo() {
   location.reload();
 }
