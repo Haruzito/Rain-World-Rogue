@@ -5,37 +5,71 @@
 <title>Slugcat Roguelike</title>
 
 <style>
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5); /* escurece o fundo */
+  z-index: -1;
+}
+
 body {
-  background: #081c08;
-  color: #9bbc0f;
-  font-family: monospace;
   margin: 0;
-  height: 100vh;
+
+  background: url("img/bg.jpg") no-repeat center center fixed;
+  background-size: cover;
+
+  color: #cfd6df;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+html, body {
+  height: 100%;
 }
 
 #layout {
   display: flex;
-  height: 100vh;
+  justify-content: center;
+  align-items: center;
+
+  width: 100%;
+  height: 100%;
 }
 
-#left, #right {
-  width: 25%;
-  padding: 10px;
+#panel {
+  width: 95%;
+  height: 90%;
+  max-width: 1400px;
+  max-height: 800px;
+
+  display: flex;
+  background: rgba(0,0,0,0.35); /* leve transparência */
+  backdrop-filter: blur(6px);
+
+  border: 2px solid rgba(255,255,255,0.4);
+}
+
+#left {
+  width: 30%;
+  min-width: 260px;
+  padding: 15px;
   box-sizing: border-box;
-  background: #102810;
-  border-right: 2px solid #9bbc0f;
-}
 
-#right {
-  border-left: 2px solid #9bbc0f;
-  border-right: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 #center {
   width: 50%;
   display: flex;
   flex-direction: column;
-  height: 100%;
+}
+
+#right {
+  width: 20%;
+  padding: 15px;
+  box-sizing: border-box;
 }
 
 #terminal {
@@ -43,7 +77,112 @@ body {
   padding: 10px;
   overflow-y: auto;
   white-space: pre-line;
-  background: #102810;
+
+  background: rgba(0,0,0,0.35); /* igual Rain World */
+  color: #cfd6df;
+
+  backdrop-filter: blur(3px);
+}
+
+#actions {
+  padding: 10px;
+
+  border-top: none;
+  background: none;
+
+  display: flex;
+  justify-content: center;
+}
+
+.actions-card {
+  background: rgba(0,0,0,0.35);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 10px;
+
+  padding: 12px;
+
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.card.mercador {
+  border: 2px solid rgba(255,255,255,0.5);
+  background: rgba(0,0,0,0.4);
+}
+
+.mercador {
+  border: 2px solid rgba(255,255,255,0.5);
+  background: rgba(0,0,0,0.4);
+}
+
+/* 🧾 CARD BASE DO CHAT */
+.msg-card {
+  background: rgba(0,0,0,0.35);
+  border: 2px solid rgba(255,255,255,0.25);
+  border-radius: 8px;
+
+  padding: 8px 10px;
+  margin-bottom: 8px;
+
+  backdrop-filter: blur(3px);
+  font-family: 'Segoe UI', sans-serif;
+}
+
+/* 🎯 EVENTOS */
+.evento-card {
+  border-color: rgba(120,180,255,0.6);
+}
+
+/* ⚔️ COMBATE */
+.combate-card {
+  border-color: rgba(255,100,100,0.6);
+}
+
+/* ⚙️ SISTEMA */
+.sistema-card {
+  border-color: rgba(200,200,200,0.5);
+}
+
+/* BOTÕES */
+
+:root {
+  --text: #cfd6df;       /* texto principal */
+  --soft: #9aa3ad;       /* texto secundário */
+  --border: rgba(255,255,255,0.35);
+  --bg-dark: rgba(0,0,0,0.35);
+}
+
+button {
+  background: rgba(0,0,0,0.5);
+  border: 2px solid rgba(255,255,255,0.5);
+  color: #cfd6df;
+
+  padding: 6px 18px;
+  font-size: 13px;
+  letter-spacing: 1px;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+button:hover {
+  border-color: white;
+  color: white;
+  background: rgba(255,255,255,0.08);
+}
+
+button:active {
+  transform: scale(0.95);
+  opacity: 0.7;
+}
+
+.box {
+  background: rgba(0,0,0,0.4);
+  border: 2px solid rgba(255,255,255,0.4);
 }
 
 input {
@@ -54,13 +193,55 @@ input {
   outline: none;
 }
 
+.card {
+  background: rgba(0,0,0,0.3);
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  padding: 10px;
+  margin-bottom: 10px;
+  width: 180px;
+
+  display: flex;              
+  flex-direction: column;     
+  align-items: center;        
+  text-align: center;         
+
+  transition: 0.2s;
+}
+
+.card:hover {
+  border-color: white;
+  background: rgba(255,255,255,0.05);
+  transform: scale(1.02);
+}
+
+.card-container {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.titulo-card {
+  font-weight: bold;
+  color: #e6edf5;
+  margin-bottom: 4px;
+  font-family: 'Rodondo', sans-serif;
+  letter-spacing: 2px;
+}
+
 .alerta {
-  background: #8b0000;
-  color: #ffff00;
-  padding: 6px;
-  border: 2px solid #ffff00;
-  text-align: center;
-  animation: piscar 0.5s alternate infinite;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: rgba(120, 0, 0, 0.15);
+  border: 2px solid rgba(255, 255, 0, 0.9);
+  border-radius: 8px;
+
+  color: #ffffaa;
+  padding: 10px;
+
+  backdrop-filter: blur(3px);
 }
 
 @keyframes piscar {
@@ -69,20 +250,18 @@ input {
 }
 
 .gameover {
-  background: #2b0000;
-  color: #ffcc00;
-  padding: 10px;
-  border: 2px solid #ffcc00;
-  text-align: center;
-  font-weight: bold;
-  margin: 10px 0;
-}
+  background: rgba(120, 0, 0, 0.15); /* vermelho bem transparente */
+  border: 2px solid rgba(255, 80, 80, 0.8);
+  border-radius: 10px;
 
-.box {
-  border: 2px solid #9bbc0f;
-  padding: 10px;
-  margin-bottom: 10px;
-  background: #081c08;
+  color: #ffdede;
+
+  padding: 20px;
+  margin: 20px 0;
+
+  text-align: center;
+
+  backdrop-filter: blur(4px);
 }
 </style>
 </head>
@@ -90,25 +269,29 @@ input {
 <body>
 
 <div id="layout">
-  <div id="left">
-    <div id="player"></div>
-    <div id="enemy"></div>
-  </div>
+  <div id="panel">
 
-  <div id="center">
-    <div id="terminal"></div>
-    <input id="input" placeholder="Digite..." autofocus>
-  </div>
+    <div id="left">
+      <div id="player"></div>
+      <div id="enemy"></div>
+    </div>
 
-  <div id="right">
-    <div id="info"></div>
+    <div id="center">
+  <div id="terminal"></div>
+
+  <div id="actions"></div> <!-- 👈 NOVO -->
+</div>
+
+    <div id="right">
+      <div id="info"></div>
+    </div>
+
   </div>
 </div>
 
 <script>
 
 let term = document.getElementById("terminal");
-let input = document.getElementById("input");
 
 let modo = "menu";
 let fase = 1;
@@ -148,10 +331,18 @@ const evolucoes = {
   hunter: ["artificer", "spearmaster"]
 };
 
-function print(t, c="") {
+function print(t, tipo="normal") {
+
+  let classe = "msg-card";
+
+  if (tipo === "evento") classe += " evento-card";
+  if (tipo === "combate") classe += " combate-card";
+  if (tipo === "sistema") classe += " sistema-card";
+
   let d = document.createElement("div");
-  d.className = c;
+  d.className = classe;
   d.innerText = t;
+
   term.appendChild(d);
   term.scrollTop = term.scrollHeight;
   updateHUD();
@@ -192,16 +383,79 @@ function updateHUD() {
 
 function startGame() {
   printHTML(
-  "<div class='gameover'>Escolha sua classe:</div>" +
+    "<div class='box'>Escolha sua classe:</div>" +
 
-  criarCardClasse("Monk", "monk", "img/monk.png") +
-  criarCardClasse("Survivor", "survivor", "img/survivor.png") +
-  criarCardClasse("Hunter", "hunter", "img/hunter.png") +
+    "<div class='card-container'>" +
+      criarCardClasse("Monk", "monk", "img/monk.png") +
+      criarCardClasse("Survivor", "survivor", "img/survivor.png") +
+      criarCardClasse("Hunter", "hunter", "img/hunter.png") +
+    "</div>"
+  );
 
-  "<br>Digite: monk / survivor / hunter",
-  ""
-);
   modo = "class";
+}
+function selecionarClasse(cmd) {
+  term.innerHTML = "";
+  let c = classes[cmd];
+
+  player.classeBase = cmd;
+  player.classeAtual = cmd;
+
+  player.hp = c.hp;
+  player.maxHp = c.hp;
+  player.atk = c.atk;
+  player.def = c.def;
+
+  player.evolucoes = evolucoes[cmd] || [];
+
+  print("Classe escolhida: " + cmd);
+
+  modo = "game";
+  mostrarAcoes();
+}
+function mostrarAcoes() {
+  setAcoes(
+    "<button onclick='acaoExplorar()'>Explorar</button>" +
+    "<button onclick='abrirInventario()'>Inventário</button>"
+  );
+}
+function acaoExplorar() {
+  nextRoom();
+}
+
+function abrirInventario() {
+
+  if (player.inventario.length === 0) {
+    print("Inventário vazio", "sistema");
+    return;
+  }
+
+  let html = `
+    <div class="box">🎒 Inventário</div>
+    <div class="card-container">
+  `;
+
+  player.inventario.forEach(item => {
+
+    html += `
+      <div class="card">
+
+        <div class="titulo-card">${item}</div>
+
+        <button onclick="usarItem('${item}')">
+          Usar
+        </button>
+
+      </div>
+    `;
+
+  });
+
+  html += "</div>";
+
+  printHTML(html);
+
+  setAcoes("<button onclick='mostrarAcoes()'>Voltar</button>");
 }
 
 // 🎲 INIMIGOS
@@ -234,17 +488,35 @@ function nextRoom() {
 
 // 🏠 ABRIGO (5ª sala)
 function shelter() {
-  print("🏕 ABRIGO SEGURO", "box evento");
+
+  printHTML(`
+    <div class="card" style="display:flex; gap:12px; align-items:center;">
+
+      <img src="img/shelter.png" width="90">
+
+      <div>
+        <div class="titulo-card">🏕 Abrigo Seguro</div>
+        <div>Você descansou...</div>
+        <div style="color:#9aa3ad;">HP restaurado</div>
+      </div>
+
+    </div>
+  `);
+
   player.hp = player.maxHp;
-  print("HP restaurado!");
 
   room = 0;
   fase++;
+  fasesCompletadas++;
 
-  fasesCompletadas++; // 👈 NOVO
+  setAcoes("<button onclick='continuarAposAbrigo()'>Continuar</button>");
 
-  print("Digite 'continuar'");
   modo = "shelter";
+}
+function continuarAposAbrigo() {
+  print("Você sai do abrigo...", "evento");
+  mostrarAcoes();
+  modo = "game";
 }
 
 // ⚔️ COMBATE
@@ -252,9 +524,17 @@ function combat() {
   modo = "combat";
   enemy = enemyGen();
 
-  print("⚠️ UM INIMIGO SURGIU!", "alerta");
+  alertaInimigo(enemy.name);
+
   print("⚔️ Inimigo: " + enemy.name, "combate");
-  print("Comandos: atk / def / agir / usar [item] / fugir", "combate");
+  print("⚔️ Combate", "box");
+
+setAcoes(
+  "<button onclick='acaoAtacar()'>Atacar</button>" +
+  "<button onclick='acaoDefender()'>Defender</button>" +
+  "<button onclick='acaoAgir()'>Agir</button>" +
+  "<button onclick='acaoFugir()'>Fugir</button>"
+);
 
   updateEnemyHUD();
 }
@@ -277,6 +557,10 @@ function enemyTurn() {
   }
 }
 function evoluirClasse(nova) {
+  document.querySelectorAll(".evolucao-cards .card").forEach(card => {
+  card.onclick = null;
+  card.style.opacity = "0.5";
+});
 
   if (!player.evolucoes.includes(nova)) {
     print("❌ Classe não desbloqueada!", "evento");
@@ -285,13 +569,53 @@ function evoluirClasse(nova) {
 
   player.classeAtual = nova;
 
-  // bônus simples (ajustável depois)
-  player.maxHp += 5;
+  // 🔥 bônus únicos por evolução
+  if (nova === "gourmond") {
+    player.maxHp += 15;
+    player.atk += 1;
+    player.def += 3;
+  }
+
+  if (nova === "santo") {
+    player.maxHp += 5;
+    player.atk += 0;
+    player.def += 4;
+  }
+
+  if (nova === "watcher") {
+    player.maxHp += 8;
+    player.atk += 2;
+    player.def += 2;
+  }
+
+  if (nova === "inv") {
+    player.maxHp += 6;
+    player.atk += 3;
+    player.def += 1;
+  }
+
+  if (nova === "artificer") {
+    player.maxHp += 4;
+    player.atk += 5;
+    player.def += 0;
+  }
+
+  if (nova === "spearmaster") {
+    player.maxHp += 3;
+    player.atk += 4;
+    player.def += 1;
+  }
+
   player.hp = player.maxHp;
-  player.atk += 2;
-  player.def += 1;
 
   print("✨ Evoluiu para: " + nova, "evento");
+  printHTML(`
+  <div class="card" style="margin-top:10px;">
+    <img src="img/${nova}.png" width="100">
+    <div class="titulo-card">${nova.toUpperCase()}</div>
+    <div style="color:#9aa3ad;">Nova forma desbloqueada</div>
+  </div>
+`);
 }
 function ganharXP(valor) {
   player.xp += valor;
@@ -347,7 +671,10 @@ function eventoEvolucao() {
   print("🧬 Você sente seu corpo mudar...", "evento");
   print("Escolha uma evolução:", "evento");
 
-  let html = "<div class='box'>🧬 Evoluções disponíveis:</div>";
+  let html = `
+  <div class='box'>🧬 Evoluções disponíveis:</div>
+  <div class='card-container evolucao-cards'>
+`;
 
 player.evolucoes.forEach((e) => {
   html += criarCardClasse(
@@ -357,7 +684,7 @@ player.evolucoes.forEach((e) => {
   );
 });
 
-html += "<br>Digite o nome da evolução.";
+html += "</div>";
 
 printHTML(html, "");
 
@@ -417,15 +744,59 @@ function usarItem(nome) {
 
   // remove item
   player.inventario = player.inventario.filter(i => i !== nome);
+
+  abrirInventario();
 }
 function eventoLoja() {
-  print("🏪 Um mercador aparece...", "evento");
-  print("1 - Fruta (2 pérolas)", "evento");
-  print("2 - Pedra (3 pérolas)", "evento");
-  print("3 - Lança (5 pérolas)", "evento");
-  print("Digite 'sair' para ir embora", "evento");
+
+  printHTML(`
+  <div class="card mercador" style="display:flex; gap:12px; align-items:center;">
+
+    <img src="img/scavenger_merchant.png" width="90">
+
+    <div>
+      <div class="titulo-card">🏪 Mercador Scavenger</div>
+
+      <div style="color:#9aa3ad;">Trocas:</div>
+
+      <div>🍎 Fruta — 2</div>
+      <div>🪨 Pedra — 3</div>
+      <div>🔱 Lança — 5</div>
+    </div>
+
+  </div>
+`);
+
+  setAcoes(
+    "<button onclick='comprar(\"fruta\")'>Fruta</button>" +
+    "<button onclick='comprar(\"pedra\")'>Pedra</button>" +
+    "<button onclick='comprar(\"lanca\")'>Lança</button>" +
+    "<button onclick='sairLoja()'>Sair</button>"
+  );
 
   modo = "loja";
+}
+function comprar(item) {
+  let preco = {
+    fruta: 2,
+    pedra: 3,
+    lanca: 5
+  };
+
+  if (player.perolas >= preco[item]) {
+    player.perolas -= preco[item];
+    player.inventario.push(item);
+    print("Comprou " + item);
+  } else {
+    print("Sem pérolas!");
+  }
+
+  mostrarAcoes();
+}
+
+function sairLoja() {
+  print("Você saiu da loja.");
+  mostrarAcoes();
 }
 
 function printHTML(html, c="") {
@@ -436,34 +807,38 @@ function printHTML(html, c="") {
   term.scrollTop = term.scrollHeight;
   updateHUD();
 }
+function alertaInimigo(nome) {
+  printHTML(`
+    <div class="alerta">
+      <img src="img/danger.png" width="50">
+      <div>⚠️ Perigo detectado: ${nome}</div>
+    </div>
+  `);
+}
+function setAcoes(html) {
+  document.getElementById("actions").innerHTML =
+    `<div class="actions-card">${html}</div>`;
+}
 
-function criarCardClasse(nome, classe, img) {
+function criarCardClasse(nome, classe, img, tipo="classe") {
 
-  let c = classes[classe];
+  let c = classes[classe] || { hp: "?", atk: "?", def: "?" };
+
+  let acao = tipo === "evolucao"
+    ? `evoluirClasse('${classe}')`
+    : `selecionarClasse('${classe}')`;
 
   return `
-  <div style="
-    display:flex;
-    border:2px solid #9bbc0f;
-    background:#081c08;
-    padding:10px;
-    margin:10px 0;
-    gap:10px;
-    align-items:center;
-  ">
+  <div class="card" onclick="${acao}">
 
-    <img src="${img}" width="80" style="border:1px solid #9bbc0f;">
+    <img src="${img}" width="80">
 
-    <div style="display:flex; flex-direction:column; gap:4px;">
-
-      <div style="font-size:16px; font-weight:bold; color:#AEEBFF;">
-        ${nome}
-      </div>
+    <div>
+      <div class="titulo-card">${nome}</div>
 
       <div>HP: ${c.hp}</div>
       <div>ATK: ${c.atk}</div>
       <div>DEF: ${c.def}</div>
-
     </div>
 
   </div>
@@ -473,243 +848,38 @@ function criarCardClasse(nome, classe, img) {
 function gameOver() {
 
   printHTML(
-    "<div class='gameover'>" +
-      "💀 GAME OVER<br><br>" +
+  "<div class='gameover'>" +
 
-      "<div class='box'>" +
-        "📊 ESTATÍSTICAS FINAIS<br><br>" +
+    "<div style='text-align:center; margin-bottom:10px;'>" +
+      "<img src='img/player_death.png' width='120'>" +
+    "</div>" +
 
-        "Sala: " + room + "<br>" +
-        "Fases concluídas: " + fasesCompletadas + "<br>" +
-        "Nível: " + player.nivel + "<br>" +
-        "Pérolas: " + player.perolas + "<br><br>" +
+    "💀 GAME OVER<br><br>" +
 
-        "Itens:<br>" +
-        (player.inventario.join(", ") || "Nenhum") +
-      "</div>" +
+    "<div class='box'>" +
+      "📊 ESTATÍSTICAS FINAIS<br><br>" +
 
-      "<br>🔁 Digite 'restart' para reiniciar a run" +
-    "</div>",
-    ""
-  );
+      "Sala: " + room + "<br>" +
+      "Fases concluídas: " + fasesCompletadas + "<br>" +
+      "Nível: " + player.nivel + "<br>" +
+      "Pérolas: " + player.perolas + "<br><br>" +
+
+      "Itens:<br>" +
+      (player.inventario.join(", ") || "Nenhum") +
+    "</div>" +
+
+    "<br><button onclick='reiniciarJogo()'>🔁 Reiniciar</button>" +
+
+  "</div>"
+);
 
   modo = "dead";
 }
 
-// 🧠 INPUT
-input.addEventListener("keydown", e => {
-  if (e.key !== "Enter") return;
+printHTML("<div class='box'><h2>Rain World Rogue</h2></div>");
 
-  let cmd = input.value.toLowerCase();
-  print("> " + cmd);
-  input.value = "";
-  // 🏪 LOJA (TEM QUE FICAR AQUI DENTRO!)
-if (modo === "loja") {
-  
-  if (cmd === "sair") {
-  print("Você saiu da loja.", "evento");
-  modo = "game";
-  return;
-}
+setAcoes("<button onclick='startGame()'>Iniciar</button>");
 
-  if (cmd === "1" && player.perolas >= 2) {
-    player.perolas -= 2;
-    player.inventario.push("fruta");
-    print("Comprou fruta!");
-  }
-
-  else if (cmd === "2" && player.perolas >= 3) {
-    player.perolas -= 3;
-    player.inventario.push("pedra");
-    print("Comprou pedra!");
-  }
-
-  else if (cmd === "3" && player.perolas >= 5) {
-    player.perolas -= 5;
-    player.inventario.push("lança");
-    print("Comprou lança!");
-  }
-
-  else {
-    print("Compra inválida ou sem pérolas");
-  }
-
-  modo = "game";
-  return;
-}
-  if (modo === "dead") {
-  if (cmd === "restart") {
-    location.reload();
-  } else {
-    print("Digite 'restart' para recomeçar", "evento");
-  }
-  return;
-}
-
-  // MENU
-  if (modo === "menu") {
-    if (cmd === "start") startGame();
-    return;
-  }
-  // 🔥 EVOLUÇÃO (fora do menu!)
-if (modo === "evolucao") {
-  let escolha = parseInt(cmd) - 1;
-
-  if (player.evolucoes[escolha]) {
-    evoluirClasse(player.evolucoes[escolha]);
-    modo = "game";
-  } else {
-    print("Escolha inválida", "evento");
-  }
-
-  return;
-}
-
-  // ESCOLHA CLASSE
-  if (modo === "class") {
-    if (classes[cmd]) {
-      let c = classes[cmd];
-      player.classeBase = cmd;
-      player.classeAtual = cmd;
-
-      player.hp = c.hp;
-      player.maxHp = c.hp;
-      player.atk = c.atk;
-      player.def = c.def;
-
-// desbloqueia evoluções
-      player.evolucoes = evolucoes[cmd] || [];
-
-      print("Classe escolhida: " + cmd);
-      modo = "game";
-      print("Digite 'explorar'");
-    }
-    return;
-  }
-
-  // JOGO
-  if (modo === "game") {
-
-  if (cmd === "explorar") {
-    nextRoom();
-    return;
-  }
-
-  if (cmd === "inv") {
-    print("Inventário: " + (player.inventario.join(", ") || "Vazio"));
-    return;
-  }
-
-  if (cmd.startsWith("evoluir ")) {
-    let nova = cmd.split(" ")[1];
-    evoluirClasse(nova);
-    return;
-  }
-  if (cmd.startsWith("usar ")) {
-  let item = cmd.split(" ")[1];
-  usarItem(item);
-  return;
-  }
-}
-
-  if (modo === "combat") {
-
-  // ATAQUE
-  if (cmd === "atk") {
-
-    let crit = Math.random() < 0.25;
-
-    let base = player.atk + Math.floor(Math.random()*6);
-    let dmg = crit ? base * 2 : base;
-
-    dmg = Math.max(0, dmg - (enemy.def || 0));
-
-    enemy.hp -= dmg;
-
-    print("Você causa " + dmg + (crit ? " 💥 CRÍTICO!" : ""));
-    print("HP do inimigo: " + enemy.hp);
-
-    if (enemy.hp <= 0) {
-      print("Inimigo derrotado!");
-
-      // 💎 Pérolas
-      let ganho = Math.floor(Math.random() * 3) + 1;
-      player.perolas += ganho;
-      print("Você encontrou " + ganho + " pérolas!", "evento");
-
-      // ⭐ XP
-      ganharXP(5);
-
-      enemy = null;
-      updateEnemyHUD();
-      modo = "game";
-      return;
-    }
-
-    enemyTurn();
-    return;
-  }
-
-  // USAR ITEM (🔴 FORA do atk)
-  if (cmd.startsWith("usar ")) {
-  let item = cmd.split(" ")[1];
-  usarItem(item);
-
-  if (enemy) enemyTurn(); // inimigo responde
-
-  return;
-}
-
-  // AGIR (esquiva)
-  if (cmd === "agir") {
-
-    let efeito = Math.random();
-
-    if (efeito < 0.5) {
-      print("Você se move rapidamente! (evitou dano)");
-      return;
-    } else {
-      print("Você falhou em agir...");
-      enemyTurn();
-      return;
-    }
-  }
-
-  // DEFESA
-  if (cmd === "def") {
-    defesaTemp = 3;
-    print("🛡️ Você se defende!");
-    enemyTurn();
-    return;
-  }
-
-  // FUGA
-  if (cmd === "fugir") {
-  if (Math.random() > 0.5) {
-    print("Você fugiu!");
-    enemy = null;
-    updateEnemyHUD();
-    modo = "game";
-    } else {
-      print("Falha na fuga!");
-      enemyTurn();
-    }
-    return;
-  }
-}
-
-  // ABRIGO
-  if (modo === "shelter") {
-    if (cmd === "continuar") {
-      modo = "game";
-      print("Você volta à exploração...");
-    }
-  }
-
-});
-
-print("SLUGCAT ROGUELIKE");
-print("Digite 'start' para começar");
 updateHUD();
 function updateEnemyHUD() {
   const info = document.getElementById("info");
@@ -748,6 +918,75 @@ info.innerHTML =
   "</div>" +
 
   "<br>ATK: " + enemy.atk;
+}
+function acaoAtacar() {
+  if (!enemy) return;
+
+  let crit = Math.random() < 0.25;
+  let base = player.atk + Math.floor(Math.random()*6);
+  let dmg = crit ? base * 2 : base;
+
+  dmg = Math.max(0, dmg - (enemy.def || 0));
+
+  enemy.hp -= dmg;
+
+  print("Você causa " + dmg + (crit ? " 💥 CRÍTICO!" : ""));
+
+  if (enemy.hp <= 0) {
+    print("Inimigo derrotado!");
+    player.perolas += Math.floor(Math.random()*3)+1;
+    ganharXP(5);
+
+    enemy = null;
+    updateEnemyHUD();
+    modo = "game";
+
+    mostrarAcoes();
+    return;
+  }
+
+  enemyTurn();
+}
+
+function acaoDefender() {
+  defesaTemp = 3;
+  print("🛡️ Defesa ativada!");
+  enemyTurn();
+}
+
+function acaoAgir() {
+  if (Math.random() < 0.5) {
+    print("Você desviou!");
+  } else {
+    print("Falhou!");
+    enemyTurn();
+  }
+
+  // 🔥 REEXIBE BOTÕES DE COMBATE
+  if (enemy) {
+    setAcoes(
+  "<button onclick='acaoAtacar()'>Atacar</button>" +
+  "<button onclick='acaoDefender()'>Defender</button>" +
+  "<button onclick='acaoAgir()'>Agir</button>" +
+  "<button onclick='acaoFugir()'>Fugir</button>"
+);
+  }
+}
+
+function acaoFugir() {
+  if (Math.random() > 0.5) {
+    print("Você fugiu!");
+    enemy = null;
+    updateEnemyHUD();
+    modo = "game";
+    mostrarAcoes();
+  } else {
+    print("Falha ao fugir!");
+    enemyTurn();
+  }
+}
+function reiniciarJogo() {
+  location.reload();
 }
 
 </script>
