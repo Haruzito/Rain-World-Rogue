@@ -1166,7 +1166,7 @@ function enemyGen() {
   // 🌿 OUTSKIRTS (região inicial - mais fraca e equilibrada)
   if (regiao.nome === "Outskirts") {
     list = [
-      {name:"Scavenger", hp:25, atk:7},
+      {name:"Scavenger", hp:30, atk:7},
       {name:"Lagarto rosa", hp:40, atk:8},
       {name:"Batfly Swarm", hp:12, atk:4},
       {name:"Centipede", hp:14, atk:5}
@@ -1179,7 +1179,7 @@ function enemyGen() {
       {name:"Centipede", hp:14, atk:5},
       {name:"Big Spider", hp:18, atk:11},
 
-      {name:"Scavenger", hp:25, atk:7},
+      {name:"Scavenger", hp:30, atk:7},
       {name:"Elite Scavenger", hp:45, atk:10, def:2},
 
       {name:"Lagarto verde", hp:60, atk:14, def:2},
@@ -1219,7 +1219,7 @@ function enemyGen() {
   // ⚡ fallback (evita bug se região não bater)
   if (list.length === 0) {
     list = [
-      {name:"Scavenger", hp:25, atk:7}
+      {name:"Scavenger", hp:30, atk:7}
     ];
   }
 
