@@ -1762,10 +1762,25 @@ function usarItem(nome) {
 function sortearItem() {
 
   let tabela = [
-    { item: "pedra", peso: 50 },   // MUITO comum
-    { item: "fruta", peso: 35 },   // comum
-    { item: "lança", peso: 15 }    // raro
+    { item: "pedra", peso: 50 },
+    { item: "fruta", peso: 35 },
+    { item: "lança", peso: 15 }
   ];
+
+  // 🍗 fome influencia comida
+  if (player.comida <= 2) {
+    tabela.find(i => i.item === "fruta").peso += 30;
+  }
+
+  // ⚔️ combate favorece armas
+  if (fase >= 2) {
+    tabela.find(i => i.item === "lança").peso += 10;
+  }
+
+  // 🪨 pedra vira “fallback seguro”
+  if (enemy && enemy.hp > player.hp) {
+    tabela.find(i => i.item === "pedra").peso += 20;
+  }
 
   let total = tabela.reduce((s, i) => s + i.peso, 0);
   let roll = Math.random() * total;
