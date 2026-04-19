@@ -1222,6 +1222,8 @@ function nextRoom() {
 
   room++;
 
+  checarRegiao();
+
   if (room >= SALAS_POR_SHELTER) {
     shelter();
     return;
