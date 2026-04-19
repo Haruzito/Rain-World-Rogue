@@ -23,6 +23,11 @@ body {
   font-family: 'Segoe UI', sans-serif;
 }
 
+.karma-icon {
+  width: 40px;
+  opacity: 0.9;
+}
+
 html, body {
   height: 100%;
 }
@@ -249,6 +254,96 @@ input {
   to { opacity: 0.6; }
 }
 
+/*CARD HUD JOGADOR*/
+.hud-card {
+  background: rgba(0,0,0,0.45);
+  border: 2px solid rgba(255,255,255,0.4);
+  border-radius: 12px;
+  padding: 12px;
+  backdrop-filter: blur(6px);
+}
+
+.hud-top {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.hud-img {
+  width: 70px;
+}
+
+.hud-title {
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: white;
+}
+
+.hud-sub {
+  color: #9aa3ad;
+  font-size: 12px;
+}
+
+.hud-section {
+  margin-top: 10px;
+}
+
+.hud-label {
+  font-size: 12px;
+  color: #9aa3ad;
+  margin-bottom: 3px;
+}
+
+.bar {
+  position: relative;
+  height: 14px;
+  border: 2px solid #9bbc0f;
+}
+
+.bar-fill {
+  background: #4CAF50;
+  height: 100%;
+  transition: 0.3s;
+}
+
+.bar-text {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  font-size: 10px;
+  top: 0;
+  color: black;
+  font-weight: bold;
+}
+
+.hud-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.hud-info {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #9aa3ad;
+}
+/*Fechar Card Hud jogador*/
+
+/*CARD DO HUD INIMIGO*/
+.enemy-card {
+  border-color: rgba(255,100,100,0.6);
+}
+
+.enemy-bar {
+  border: 2px solid red;
+}
+
+.enemy-fill {
+  background: red;
+}
+/*FECHAR CARD DO HUD INIMIGO*/
+
 .gameover {
   background: rgba(120, 0, 0, 0.15); /* vermelho bem transparente */
   border: 2px solid rgba(255, 80, 80, 0.8);
@@ -308,6 +403,9 @@ let player = {
   classeBase: "",
   classeAtual: "",
   evolucoes: [],
+
+  karma: 1,
+maxKarma: 10,
 
   // ❤️ VIDA
   hp: 30,
@@ -497,38 +595,53 @@ for (let i = 0; i < player.maxComida; i++) {
 
 }
 
-  document.getElementById("player").innerHTML =
-    "<img src='" + imgPlayer + "' width='100'><br>" +
+let karmaImg = "img/Karma_" + player.karma + ".png";
 
-    "SLUGCAT<br>" +
-    "Classe: " + player.classeAtual + "<br><br>" +
+  document.getElementById("player").innerHTML = `
+<div class="hud-card">
 
-    "Comida:<br>" + pips + "<br><br>" +
+  <div class="hud-top">
+    <img src="${imgPlayer}" class="hud-img">
+    
+    <div>
+      <div class="hud-title">SLUGCAT</div>
+      <div class="hud-sub">${player.classeAtual}</div>
 
-    "HP<br>" +
-"<div style='position:relative; border:2px solid #9bbc0f; width:100%; height:14px;'>" +
+      <img src="${karmaImg}" class="karma-icon">
+    </div>
+  </div>
 
-  "<div style='background:#4CAF50; width:" + hpPercent + "%; height:100%; transition:0.3s;'></div>" +
+  <div class="hud-section">
+    <div class="hud-label">HP</div>
+    <div class="bar">
+      <div class="bar-fill" style="width:${hpPercent}%"></div>
+      <div class="bar-text">${player.hp} / ${player.maxHp}</div>
+    </div>
+  </div>
 
-  "<div style='position:absolute; width:100%; top:0; left:0; text-align:center; font-size:10px; color:black; font-weight:bold;'>" +
-    player.hp + " / " + player.maxHp +
-  "</div>" +
+  <div class="hud-section">
+    <div class="hud-label">Comida</div>
+    <div>${pips}</div>
+  </div>
 
-"</div>" +
+  <div class="hud-stats">
+    <div>ATK: ${player.atk}</div>
+    <div>DEF: ${player.def}</div>
+    <div>STR: ${player.str}</div>
+    <div>REF: ${player.ref}</div>
+    <div>VEL: ${player.vel}</div>
+    <div>INT: ${player.int}</div>
+  </div>
 
-    "<br>ATK: " + player.atk +
-"<br>DEF: " + player.def +
+  <div class="hud-info">
+    Sala: ${room}/5<br>
+    Fases: ${fasesCompletadas}<br>
+    Nível: ${player.nivel}<br>
+    Pérolas: ${player.perolas}
+  </div>
 
-"<br><br>STR: " + player.str +
-"<br>REF: " + player.ref +
-"<br>VEL: " + player.vel +
-"<br>INT: " + player.int +
-
-"<br><br>Sala: " + room + "/5" +
-"<br>Fases concluídas: " + fasesCompletadas +
-"<br><br>Nível: " + player.nivel +
-"<br>Pérolas: " + player.perolas +
-"<br><br>INV:<br>" +
+</div>
+`;
 (player.inventario.join(", ") || "Vazio");
 }
 
@@ -733,7 +846,7 @@ function enemyGen() {
   {name:"Lagarto azul", hp:20, atk:6},
 
   {name:"Lagarto branco", hp:35, atk:9, def:1},
-  {name:"Lagarto preto", hp:50, atk:12}, 
+  {name:"Lagarto preto", hp:20, atk:8}, 
 
   {name:"Abutre", hp:120, atk:10},
 
@@ -783,8 +896,85 @@ function nextRoom() {
 
   print("Sala " + room, "evento");
 
-  if (Math.random() < 0.7) combat();
+  if (Math.random() < 0.7) preCombate();
   else event();
+}
+
+function preCombate() {
+  modo = "precombat";
+  enemy = enemyGen();
+
+  alertaInimigo(enemy.name);
+
+  print("Uma criatura hostil apareceu: " + enemy.name, "evento");
+
+  setAcoes(
+    "<button onclick='tentarFugirPre()'>Escapar</button>" +
+    "<button onclick='tentarEsconder()'>Se esconder</button>" +
+    "<button onclick='iniciarCombateDireto()'>Lutar</button>"
+  );
+}
+
+function tentarFugirPre() {
+  if (Math.random() < 0.6) {
+    print("Você escapou!", "evento");
+    enemy = null;
+    mostrarAcoes();
+    modo = "game";
+  } else {
+    print("Falhou ao fugir!", "combate");
+    iniciarCombate(false); // sem vantagem
+  }
+}
+
+function tentarEsconder() {
+  let roll = Math.random();
+
+  if (roll < 0.5) {
+    print("A criatura foi embora...", "evento");
+    enemy = null;
+    mostrarAcoes();
+    modo = "game";
+  } else {
+    print("Você foi detectado!", "combate");
+
+    let dmg = Math.max(0, enemy.atk - player.def);
+    player.hp -= dmg;
+
+    print("Você recebeu " + dmg + " de dano surpresa!");
+
+    iniciarCombate(false);
+  }
+}
+
+function iniciarCombateDireto() {
+  iniciarCombate(true);
+}
+
+function iniciarCombate(vantagem) {
+  modo = "combat";
+
+  print("⚔️ Combate iniciado!", "combate");
+
+  if (vantagem) {
+    print("Você atacou primeiro!", "evento");
+
+    let dmg = player.atk + Math.floor(Math.random()*6);
+    enemy.hp -= dmg;
+
+    print("Você causou " + dmg);
+  }
+
+  setAcoes(
+    "<button onclick='acaoAtacar()'>Atacar</button>" +
+    "<button onclick='acaoDefender()'>Defender</button>" +
+    "<button onclick='acaoAgir()'>Agir</button>" +
+    "<button onclick='acaoFugir()'>Fugir</button>" +
+    "<button onclick='abrirInventarioCombate()'>Itens</button>" +
+    "<button onclick='abrirHabilidades()'>Habilidades</button>"
+  );
+
+  updateEnemyHUD();
 }
 
 // 🏠 ABRIGO (5ª sala)
@@ -956,10 +1146,24 @@ function onEnemyDeath(nome) {
     let drops = ["pedra", "lança", "fruta"];
     let drop = drops[Math.floor(Math.random()*drops.length)];
 
-    player.inventario.push(drop);
+    if (player.inventario.length < limiteInventario()) {
+  player.inventario.push(drop);
+  print("Item obtido: " + item);
+} else {
+  print("Inventário cheio!", "evento");
+}
     print("🎒 O Scavenger dropou: " + drop, "evento");
   }
 
+}
+
+function itemCompativel(item) {
+
+  if (player.classeAtual === "spearmaster" && item === "fruta") {
+    return false;
+  }
+
+  return true;
 }
 
 function evoluirClasse(nova) {
@@ -1099,7 +1303,12 @@ print("⚡ Você absorveu energia (+1 Pip)", "evento");
     let itens = ["pedra", "lança", "fruta"];
     let drop = itens[Math.floor(Math.random()*itens.length)];
 
-    player.inventario.push(drop);
+    if (player.inventario.length < limiteInventario()) {
+  player.inventario.push(drop);
+  print("Item obtido: " + item);
+} else {
+  print("Inventário cheio!", "evento");
+}
 
     print("🎒 O Scavenger dropou: " + drop);
   }
@@ -1129,6 +1338,26 @@ function finalizarPosMorte() {
 }
 
 // 🎯 EVENTOS
+
+function eventoEco() {
+
+  if (player.karma >= player.maxKarma) {
+    print("O eco não responde mais...", "evento");
+    return;
+  }
+
+  print("🌌 Um Eco aparece diante de você...", "evento");
+
+  player.karma++;
+
+  let atributos = ["str", "ref", "vel", "int"];
+  let escolhido = atributos[Math.floor(Math.random()*atributos.length)];
+
+  player[escolhido]++;
+
+  print("Seu Karma subiu para " + player.karma);
+  print("Seu atributo " + escolhido.toUpperCase() + " aumentou!", "evento");
+}
 
 function eventoLeviata() {
 
@@ -1201,9 +1430,43 @@ function event() {
   else if (roll < 0.97) {
     eventoEvolucao();
   }
+  else if (roll < 0.97) {
+  eventoEco();
+  }
+  else if (roll < 0.25) {
+  eventoComida();
+  }
   else {
     eventoLeviata(); // 👈 RARO E PERIGOSO
   }
+}
+
+function eventoComida() {
+
+  let comidas = ["Batfly", "Eggbug", "Blue Fruit"];
+  let comida = comidas[Math.floor(Math.random()*comidas.length)];
+
+  print("Você encontrou um " + comida, "evento");
+
+  setAcoes(
+    "<button onclick='tentarPegarComida(\""+comida+"\")'>Pegar</button>" +
+    "<button onclick='mostrarAcoes()'>Ignorar</button>"
+  );
+
+  modo = "evento";
+}
+
+function tentarPegarComida(nome) {
+
+  if (Math.random() < 0.7) {
+    player.comida = Math.min(player.comida + 1, player.maxComida);
+    print("Você pegou e comeu o " + nome + " (+1 pip)");
+  } else {
+    print("Ele escapou...");
+  }
+
+  mostrarAcoes();
+  modo = "game";
 }
 
 function eventoEvolucao() {
@@ -1242,7 +1505,12 @@ function eventoItem() {
   let itens = ["pedra", "lança", "fruta"];
   let item = itens[Math.floor(Math.random() * itens.length)];
 
-  player.inventario.push(item);
+  if (player.inventario.length < limiteInventario()) {
+  player.inventario.push(drop);
+  print("Item obtido: " + item);
+} else {
+  print("Inventário cheio!", "evento");
+}
 
   print("🎁 Você encontrou: " + item, "evento");
 }
@@ -1331,7 +1599,7 @@ function eventoLoja() {
   const todosItens = [
     {nome: "fruta", preco: 2},
     {nome: "pedra", preco: 3},
-    {nome: "lanca", preco: 5},
+    {nome: "lança", preco: 5},
     {nome: "bubble", preco: 4},
     {nome: "lanca_explosiva", preco: 8}
   ];
@@ -1376,7 +1644,12 @@ function comprar(item, preco) {
 
   if (player.perolas >= preco) {
     player.perolas -= preco;
-    player.inventario.push(item);
+    if (player.inventario.length < limiteInventario()) {
+  player.inventario.push(drop);
+  print("Item obtido: " + item);
+} else {
+  print("Inventário cheio!", "evento");
+}
     print("Comprou " + item);
   } else {
     print("Sem pérolas!");
@@ -1437,6 +1710,57 @@ function criarCardClasse(nome, classe, img, tipo="classe") {
   `;
 }
 
+function limiteInventario() {
+  switch(player.classeAtual) {
+    case "spearmaster": return 2;
+    case "hunter": return 4;
+    case "artificer": return 3;
+    default: return 2;
+  }
+}
+
+function trocarItem(novoItem) {
+
+  let html = `
+    <div class="box">Inventário cheio! Escolha um item para trocar:</div>
+    <div class="card-container">
+  `;
+
+  player.inventario.forEach((item, index) => {
+
+    html += `
+      <div class="card">
+        <div class="titulo-card">${item}</div>
+
+        <button onclick="confirmarTroca(${index}, '${novoItem}')">
+          Trocar
+        </button>
+      </div>
+    `;
+  });
+
+  html += "</div>";
+
+  printHTML(html);
+}
+
+function confirmarTroca(index, novoItem) {
+
+  if (!itemCompativel(novoItem)) {
+  print("Item incompatível!", "evento");
+  return;
+}
+
+  let antigo = player.inventario[index];
+
+  // aqui você pode validar compatibilidade depois
+  player.inventario[index] = novoItem;
+
+  print(`Você trocou ${antigo} por ${novoItem}`, "evento");
+
+  mostrarAcoes();
+}
+
 function gameOver() {
 
   setAcoes("");
@@ -1479,46 +1803,60 @@ function updateEnemyHUD() {
   const info = document.getElementById("info");
 
   if (!enemy) {
-    info.innerHTML = "Nenhuma criatura detectada...";
+    info.innerHTML = `
+      <div class="hud-card">
+        <div class="hud-info">Nenhuma criatura detectada...</div>
+      </div>
+    `;
     return;
   }
 
-  // define imagem baseada no nome
   const enemyImages = {
-  "Scavenger": "img/scavenger.png",
-  "Lagarto rosa": "img/lagarto-rosa.png",
-  "Lagarto verde": "img/lagarto-verde.png",
-  "Lagarto azul": "img/lagarto-azul.png",
-  "Lagarto branco": "img/lagarto-branco.png",
-  "Lagarto preto": "img/lagarto-preto.png",
-  "Abutre": "img/abutre.png",
-  "Centipede": "img/centipede.png",
-  "Big Spider": "img/bigs-pider.png",
-  "Miros Bird": "img/miros-bird.png",
-  "DLL": "img/dll.png"
-};
+    "Scavenger": "img/scavenger.png",
+    "Lagarto rosa": "img/lagarto-rosa.png",
+    "Lagarto verde": "img/lagarto-verde.png",
+    "Lagarto azul": "img/lagarto-azul.png",
+    "Lagarto branco": "img/lagarto-branco.png",
+    "Lagarto preto": "img/lagarto-preto.png",
+    "Abutre": "img/abutre.png",
+    "Centipede": "img/centipede.png",
+    "Big Spider": "img/big-spider.png",
+    "Miros Bird": "img/miros-bird.png",
+    "DLL": "img/dll.png"
+  };
 
-let img = enemyImages[enemy.name] || "img/unknown.png";
+  let img = enemyImages[enemy.name] || "img/unknown.png";
 
   let maxHp = enemy.maxHp || enemy.hp;
   let hpPercent = (enemy.hp / maxHp) * 100;
 
-info.innerHTML =
-  "<div>👾 INIMIGO</div><br>" +
-  "<img src='" + img + "' width='120'><br><br>" +
+  info.innerHTML = `
+  <div class="hud-card enemy-card">
 
-  "HP<br>" +
-  "<div style='position:relative; border:2px solid red; width:100%; height:14px;'>" +
+    <div class="hud-top">
+      <img src="${img}" class="hud-img">
 
-    "<div style='background:red; width:" + hpPercent + "%; height:100%; transition:0.3s;'></div>" +
+      <div>
+        <div class="hud-title">${enemy.name}</div>
+        <div class="hud-sub">Hostil</div>
+      </div>
+    </div>
 
-    "<div style='position:absolute; width:100%; top:0; left:0; text-align:center; font-size:10px; color:white; font-weight:bold; text-shadow: 0 0 3px black;'>" +
-      enemy.hp + " / " + maxHp +
-    "</div>" +
+    <div class="hud-section">
+      <div class="hud-label">HP</div>
+      <div class="bar enemy-bar">
+        <div class="bar-fill enemy-fill" style="width:${hpPercent}%"></div>
+        <div class="bar-text">${enemy.hp} / ${maxHp}</div>
+      </div>
+    </div>
 
-  "</div>" +
+    <div class="hud-stats">
+      <div>ATK: ${enemy.atk}</div>
+      <div>DEF: ${enemy.def || 0}</div>
+    </div>
 
-  "<br>ATK: " + enemy.atk;
+  </div>
+  `;
 }
 
 function acaoAtacar() {
