@@ -1315,13 +1315,12 @@ function shelter() {
 
   printHTML(`
     <div class="card card-wide" style="display:flex; gap:12px; align-items:center;">
-
       <img src="img/shelter.png" width="90">
 
       <div>
-        <div class="titulo-card">🏕 Abrigo Seguro</div>
+        <div class="titulo-card">🏕 Abrigo</div>
 
-        <div>Você precisa hibernar para continuar.</div>
+        <div>Você pode hibernar ou continuar ferido.</div>
 
         <div style="color:#9aa3ad;">
           Necessário: ${PIPS_PARA_HIBERNAR} pips
@@ -1329,50 +1328,55 @@ function shelter() {
 
         <div>Você tem: ${player.comida}</div>
       </div>
-
     </div>
   `);
 
-  // ❌ NÃO TEM COMIDA SUFICIENTE
   if (player.comida < PIPS_PARA_HIBERNAR) {
 
-    print("❌ Você não tem energia suficiente para hibernar!", "evento");
+    print("⚠️ Sem energia suficiente. Você não consegue se recuperar.", "evento");
 
     setAcoes(`
-      <button onclick='continuarAposAbrigo()'>Sair do abrigo</button>
+      <button onclick='continuarAposAbrigo(false)'>Seguir ferido</button>
     `);
 
     modo = "shelter_blocked";
     return;
   }
 
-  // ✅ TEM COMIDA → pode hibernar
   setAcoes(`
-    <button onclick='hibernar()'>Hibernar</button>
+    <button onclick='hibernar(true)'>Hibernar (cura HP)</button>
+    <button onclick='continuarAposAbrigo(false)'>Continuar sem hibernar</button>
   `);
 
   modo = "shelter";
 }
 
-function hibernar() {
+function hibernar(curar) {
 
   player.comida -= PIPS_PARA_HIBERNAR;
 
-  player.hp = player.maxHp;
-
-  print("🌙 Você hibernou e recuperou energia!", "evento");
+  if (curar) {
+    player.hp = player.maxHp;
+    print("🌙 Você hibernou e se recuperou totalmente!", "evento");
+  } else {
+    print("🌙 Você descansou, mas continua ferido.", "evento");
+  }
 
   room = 0;
   fase++;
   fasesCompletadas++;
 
-  setAcoes("<button onclick='continuarAposAbrigo()'>Acordar</button>");
+  setAcoes("<button onclick='continuarAposAbrigo(false)'>Acordar</button>");
 
   modo = "shelter";
 }
 
-function continuarAposAbrigo() {
-  print("Você sai do abrigo...", "evento");
+function continuarAposAbrigo(curar) {
+
+  if (!curar) {
+    print("Você segue adiante sem se recuperar...", "evento");
+  }
+
   mostrarAcoes();
   modo = "game";
 }
