@@ -1381,8 +1381,12 @@ function continuarAposAbrigo(curar) {
     print("Você segue adiante sem se recuperar...", "evento");
   }
 
-  mostrarAcoes();
   modo = "game";
+
+  room++;
+
+  mostrarAcoes();
+  nextRoom();
 }
 
 // ⚔️ COMBATE
