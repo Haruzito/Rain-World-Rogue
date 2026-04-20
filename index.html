@@ -11,6 +11,36 @@
 
 <style>
 
+/* MENU PRINCIPAL*/
+#mainMenu {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(8px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 99999;
+}
+
+.menu-card {
+  background: rgba(0,0,0,0.6);
+  border: 2px solid rgba(255,255,255,0.4);
+  padding: 40px;
+  border-radius: 16px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  align-items: center;
+
+  backdrop-filter: blur(8px);
+
+  transform: scale(1.5); /* 👈 deixa o menu maior */
+}
+
 /*LOGO HUD*/
 #logo {
   position: fixed;
@@ -593,12 +623,21 @@ input {
 
 <body>
 
+  <div id="mainMenu">
+  <div class="menu-card">
+    <img src="img/rwr.png" width="200">
+
+    <button onclick="startGame()">▶ Iniciar Jornada</button>
+    <button onclick="showCredits()">ℹ Créditos</button>
+  </div>
+</div>
+
   <div id="bg"></div>
 
   <div id="bg-layer"></div>
 
 <div id="logo">
-  <div class="logo-card">
+  <div class="logo-card" onclick="toggleMenu()">
     <img src="img/rwr.png">
   </div>
 </div>
@@ -632,6 +671,18 @@ input {
 
 <script>
 
+function toggleMenu() {
+  let menu = document.getElementById("mainMenu");
+
+  if (!menu) return;
+
+  if (menu.style.display === "none" || menu.style.display === "") {
+    menu.style.display = "flex";
+  } else {
+    menu.style.display = "none";
+  }
+}
+
 let term = document.getElementById("terminal");
 
 let modo = "menu";
@@ -646,7 +697,7 @@ function checarRegiao() {
 
 }
 let enemy = null;
-let fasesCompletadas = 0;
+let ciclosCompletadas = 0;
 updateEnemyHUD();
 let results = [];
 
@@ -924,7 +975,7 @@ let karmaImg = "img/Karma_" + player.karma + ".png";
   <!-- INFO -->
   <div class="hud-info">
     Sala: ${room}/5<br>
-    Fases: ${fasesCompletadas}<br>
+    Ciclos: ${ciclosCompletadas}<br>
     Nível: ${player.nivel}<br>
     Pérolas: ${player.perolas}
 
@@ -965,9 +1016,15 @@ function aplicarBackground() {
 aplicarBackground();
 
 function startGame() {
+
+  document.getElementById("mainMenu").style.display = "none";
+
+  term.innerHTML = "";
+
+  print("Escolha sua classe:");
+
   printHTML(
     "<div class='box'>Escolha sua classe:</div>" +
-
     "<div class='card-container'>" +
       criarCardClasse("Monk", "monk", "img/monk.png") +
       criarCardClasse("Survivor", "survivor", "img/survivor.png") +
@@ -975,12 +1032,9 @@ function startGame() {
     "</div>"
   );
 
-  aplicarBackground();
-
   modo = "class";
-
-  atualizarBackground();
 }
+
 function selecionarClasse(cmd) {
   term.innerHTML = "";
   let c = classes[cmd];
@@ -1320,6 +1374,7 @@ const PIPS_PARA_HIBERNAR = 5;
 
 // VARIAVEIS GLOBAIS
 let fugaBonus = 0;
+let localMorte = "";
 
 // 🏃 SALAS
 function nextRoom() {
@@ -1481,7 +1536,7 @@ function hibernar(curar) {
 
   room = 0;
   fase++;
-  fasesCompletadas++;
+  ciclosCompletadas++;
 
   setAcoes("<button onclick='continuarAposAbrigo(false)'>Acordar</button>");
 
@@ -2316,6 +2371,8 @@ function confirmarTroca(index, novoItem) {
 
 function gameOver() {
 
+  localMorte = `${regiao.nome} - Sala ${room}`;
+
   if (modo === "dead") return;
 
   setAcoes("");
@@ -2332,8 +2389,9 @@ function gameOver() {
     "<div class='box'>" +
       "📊 ESTATÍSTICAS FINAIS<br><br>" +
 
+      "Local da morte: " + localMorte + "<br>" +
       "Sala: " + room + "<br>" +
-      "Fases concluídas: " + fasesCompletadas + "<br>" +
+      "Ciclos concluídas: " + ciclosCompletadas + "<br>" +
       "Nível: " + player.nivel + "<br>" +
       "Pérolas: " + player.perolas + "<br><br>" +
 
@@ -2349,9 +2407,6 @@ function gameOver() {
   modo = "dead";
 }
 
-setAcoes("<button onclick='startGame()'>Iniciar</button>");
-
-updateHUD();
 function updateEnemyHUD() {
   const info = document.getElementById("info");
 
@@ -2545,6 +2600,10 @@ document.addEventListener("mousemove", (e) => {
 
   bg.style.transform = `translate(${x}px, ${y}px)`;
 });
+
+window.onload = () => {
+  document.getElementById("mainMenu").style.display = "flex";
+};
 
 </script>
 </body>
