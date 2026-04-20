@@ -12,7 +12,7 @@
 <style>
 
 /* MENU PRINCIPAL*/
-#mainMenu {
+#startMenu, #pauseMenu {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.75);
@@ -623,12 +623,21 @@ input {
 
 <body>
 
-  <div id="mainMenu">
+  <div id="startMenu">
   <div class="menu-card">
     <img src="img/rwr.png" width="200">
 
     <button onclick="startGame()">▶ Iniciar Jornada</button>
     <button onclick="showCredits()">ℹ Créditos</button>
+  </div>
+</div>
+
+<div id="pauseMenu" style="display:none;">
+  <div class="menu-card">
+    <img src="img/rwr.png" width="200">
+
+    <button onclick="continuarJogo()">▶ Continuar</button>
+    <button onclick="reiniciarJogo()">🔁 Reiniciar</button>
   </div>
 </div>
 
@@ -672,20 +681,30 @@ input {
 <script>
 
 function toggleMenu() {
-  let menu = document.getElementById("mainMenu");
+  if (modo === "menu") return;
 
-  if (!menu) return;
+  let pause = document.getElementById("pauseMenu");
 
-  if (menu.style.display === "none" || menu.style.display === "") {
-    menu.style.display = "flex";
+  if (pause.style.display === "none") {
+    modoAnterior = modo;
+    modo = "pause";
+    pause.style.display = "flex";
   } else {
-    menu.style.display = "none";
+    continuarJogo();
   }
+}
+
+function continuarJogo() {
+  let pause = document.getElementById("pauseMenu");
+
+  pause.style.display = "none";
+  modo = modoAnterior || "game";
 }
 
 let term = document.getElementById("terminal");
 
 let modo = "menu";
+let modoAnterior = null;
 let fase = 1;
 let room = 1;
 let bloqueioProgresso = false;
@@ -713,6 +732,7 @@ let player = {
   classeBase: "",
   classeAtual: "",
   evolucoes: [],
+  jaEvoluiu: false,
 
   karma: 1,
 maxKarma: 10,
@@ -1017,7 +1037,9 @@ aplicarBackground();
 
 function startGame() {
 
-  document.getElementById("mainMenu").style.display = "none";
+  if (modo !== "menu") return;
+
+  document.getElementById("startMenu").style.display = "none";
 
   term.innerHTML = "";
 
@@ -1551,10 +1573,9 @@ function continuarAposAbrigo(curar) {
 
   modo = "game";
 
-  room++;
+  room = 0;
 
   mostrarAcoes();
-  nextRoom();
 }
 
 // ⚔️ COMBATE
@@ -1736,6 +1757,8 @@ function evoluirClasse(nova) {
   }
 
   player.classeAtual = nova;
+
+  player.jaEvoluiu = true;
 
   player.evolucoes = player.evolucoes.filter(e => e !== nova);
 
@@ -2034,6 +2057,11 @@ function tentarPegarComida(nome) {
 }
 
 function eventoEvolucao() {
+
+  if (player.jaEvoluiu) {
+    print("Nada acontece...", "evento");
+    return;
+  }
 
   if (!player.evolucoes.length) {
     print("Nada acontece...", "evento");
@@ -2602,7 +2630,7 @@ document.addEventListener("mousemove", (e) => {
 });
 
 window.onload = () => {
-  document.getElementById("mainMenu").style.display = "flex";
+  document.getElementById("startMenu").style.display = "flex";
 };
 
 </script>
