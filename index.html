@@ -953,11 +953,14 @@ let karmaImg = "img/Karma_" + player.karma + ".png";
   <div class="hud-main">
 
   <!-- HP -->
-  <div class="hp-wrapper">
-    <div class="hp-vertical">
-      <div class="hp-fill" style="height:${hpPercent}%"></div>
-    </div>
+  <div class="hp-wrapper" style="flex-direction:column; align-items:center;">
+  <div class="hp-vertical">
+    <div class="hp-fill" style="height:${hpPercent}%"></div>
   </div>
+  <div style="font-size:10px; color:white;">
+    ${player.hp}/${player.maxHp}
+  </div>
+</div>
 
   <!-- INFO CENTRAL -->
   <div class="hud-text">
@@ -2490,11 +2493,14 @@ function updateEnemyHUD() {
     <div class="hud-main">
 
       <!-- HP VERTICAL (ESQUERDA) -->
-      <div class="hp-wrapper">
-        <div class="hp-vertical">
-          <div class="hp-fill" style="height:${hpPercent}%"></div>
-        </div>
-      </div>
+      <div class="hp-wrapper" style="flex-direction:column; align-items:center;">
+  <div class="hp-vertical">
+    <div class="hp-fill" style="height:${hpPercent}%"></div>
+  </div>
+  <div style="font-size:10px; color:white;">
+    ${player.hp}/${player.maxHp}
+  </div>
+</div>
 
       <!-- INFO CENTRAL -->
       <div class="hud-text">
